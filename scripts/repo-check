@@ -9,6 +9,7 @@ fail() {
 required_files='
 AGENTS.md
 README.md
+.gitattributes
 .agents/chatgpt/AGENTS.md
 .agents/chatgpt/RESEARCH.md
 .agents/chatgpt/ARENA-DISPATCH.md
@@ -27,6 +28,7 @@ README.md
 scripts/verify
 scripts/repo-check
 docs/README.md
+docs/architecture/agent-operating-stack.md
 evals/README.md
 '
 
