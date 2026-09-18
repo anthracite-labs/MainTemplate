@@ -18,12 +18,14 @@ assignees: ""
 
 <!-- Canonical product/architecture/ADR/policy sources governing this task. -->
 
-# Read in this order
+# Task-specific references
 
-1. /AGENTS.md
-2. /.agents/arena/AGENTS.md
-3. <!-- exact task-specific references -->
-4. <!-- selected workflow -->
+<!--
+List only exact task-specific canonical references, in the order Arena should
+read them after opening this Issue. Do not repeat /AGENTS.md or
+/.agents/arena/AGENTS.md; the external execution prompt loads those first.
+If none, write None.
+-->
 
 Do not read unrelated repository material unless execution exposes a concrete need.
 

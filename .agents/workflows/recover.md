@@ -6,21 +6,20 @@ Git/GitHub are the recovery substrate. Do not depend on chat/model memory.
 
 ## Procedure
 
-1. Read the assigned/open Issue that defines the work.
-2. Read root and Arena operating instructions.
-3. Inspect the current branch and working tree.
-4. Inspect related PR state and discussion.
-5. Inspect recent commits relevant to the Issue.
-6. Read linked plan/ADR/canonical docs.
-7. Compare intended acceptance criteria with current repository state.
-8. Reconstruct:
+1. Use the assigned/open Issue as the task anchor.
+2. Inspect the current branch and working tree.
+3. Inspect related PR state and discussion.
+4. Inspect recent commits relevant to the Issue.
+5. Re-read linked task references/plan/ADR/canonical docs as needed.
+6. Compare intended acceptance criteria with current repository state.
+7. Reconstruct:
    - completed work;
    - remaining work;
    - blockers;
    - last verified evidence;
    - next safe action.
-9. If sources conflict, apply the root authority-domain rules and surface unresolved same-domain conflict.
-10. Resume only after the reconstruction is evidence-backed.
+8. If sources conflict, apply the root authority-domain rules and surface unresolved same-domain conflict.
+9. Resume only after the reconstruction is evidence-backed.
 
 ## Rules
 
