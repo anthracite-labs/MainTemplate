@@ -1,8 +1,9 @@
-# Sensitive operating surfaces
+# Sensitive operating surfaces.
+# MainTemplate is a GitHub Template Repository: replace @anthracite-labs with
+# the owning user or team of the generated repository, or delete this file.
 /AGENTS.md @anthracite-labs
 /.gitattributes @anthracite-labs
 /.agents/ @anthracite-labs
 /.github/ @anthracite-labs
 /scripts/ @anthracite-labs
-/evals/ @anthracite-labs
 /docs/ @anthracite-labs

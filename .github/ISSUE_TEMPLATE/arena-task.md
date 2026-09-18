@@ -27,8 +27,6 @@ read them after opening this Issue. Do not repeat /AGENTS.md or
 If none, write None.
 -->
 
-Do not read unrelated repository material unless execution exposes a concrete need.
-
 # Decisions already made
 
 <!-- Closed decisions Arena must not reopen. -->
@@ -57,10 +55,13 @@ Do not read unrelated repository material unless execution exposes a concrete ne
 
 # Verification required
 
-- [ ] Run scripts/verify when applicable.
-- [ ] Run task-specific checks:
-- [ ] Inspect the complete final diff.
-- [ ] Map evidence to every acceptance criterion.
+<!--
+Task-specific checks only. Standing verification behavior (scripts/verify,
+complete-diff inspection, acceptance-criteria mapping) is owned by
+/.agents/arena/AGENTS.md and always applies.
+-->
+
+- [ ]
 
 # Expected result
 
@@ -76,23 +77,13 @@ Do not read unrelated repository material unless execution exposes a concrete ne
 
 # Escalate only if
 
-- canonical truth or operating policy conflicts;
-- required intent/consequential architecture is genuinely undecided;
-- a new trust/security boundary appears;
-- destructive/irreversible action is required;
-- a selected required capability cannot operate;
-- acceptance criteria are mutually incompatible.
-
-Routine reversible implementation choices are not escalation conditions.
+<!--
+Task-specific escalation conditions only. Standing escalation rules are owned
+by /.agents/arena/AGENTS.md. If there are no task-specific ones, write None.
+-->
 
 # PR / completion evidence
 
-The PR must include:
-
-- Issue reference / closing keyword;
-- concise result summary;
-- files/components changed;
-- verification commands and outcomes;
-- acceptance-criteria evidence;
-- genuine residual blocker/decision, if any;
-- explicit confirmation of scope.
+<!--
+Evidence beyond the standard PR template requirements. If none, write None.
+-->

@@ -1,6 +1,10 @@
-# ChatGPT Research Standard
+# Research Standard
 
-Use this file whenever external research, freshness verification, ecosystem comparison, or evidence-backed recommendation materially affects the answer or an Arena task.
+This file is the canonical owner of the reusable research procedure and
+evidence rules for this repository. ChatGPT applies it directly;
+`.agents/workflows/research.md` references it for assigned research tasks.
+
+Use it whenever external research, freshness verification, ecosystem comparison, or evidence-backed recommendation materially affects the answer or an Arena task.
 
 For purely repo-internal facts, start from canonical repository sources instead.
 

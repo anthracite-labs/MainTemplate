@@ -61,13 +61,11 @@ Conflict rules:
 ### Agent operating layer
 
 - .agents/chatgpt/AGENTS.md — ChatGPT's role with the human.
-- .agents/chatgpt/RESEARCH.md — external research/evidence standard.
+- .agents/chatgpt/RESEARCH.md — canonical external research/evidence standard.
 - .agents/chatgpt/ARENA-DISPATCH.md — Arena Issue/prompt compiler.
 - .agents/arena/AGENTS.md — Arena execution contract.
 - .agents/workflows/ — reusable task procedures: research, plan, implement,
   debug, review, security, recover.
-- .agents/skills/ — reserved for approved specialized skills; create one only
-  when the human + ChatGPT deliberately adopt it.
 
 ### Durable project truth
 
@@ -88,12 +86,6 @@ Conflict rules:
 - .github/CODEOWNERS — ownership of sensitive operating surfaces.
 - .github/workflows/verify.yml — repository verification in CI.
 
-### Evaluation and optional tools
-
-- evals/ — methodology/fixtures for evaluating the agent operating system.
-- tools/ — reserved for approved external tool adapters; do not create wrappers
-  until a specific tool is adopted.
-
 ## Role routing
 
 - ChatGPT project bootstrap: external project instructions should only point to
@@ -101,7 +93,7 @@ Conflict rules:
 - Arena bootstrap: use the canonical execution prompt defined in
   .agents/chatgpt/ARENA-DISPATCH.md. It loads standing operating policy before
   the assigned Issue; the Issue contains only task-specific
-  references/workflow/skills/tools.
+  references/workflow/capabilities.
 
 External bootstrap instructions are navigation pointers, not duplicated policy.
 
@@ -116,7 +108,7 @@ Agents must:
 - avoid loading unused skills/tools.
 
 After boot policy is loaded, the assigned Issue tells Arena which task-specific
-references/workflow/skills/tools are active and what result/evidence is expected.
+references/workflow/capabilities are active and what result/evidence is expected.
 
 ## Verification principle
 
@@ -146,6 +138,11 @@ repo policy makes it universally required, such as scripts/verify.
 
 Do not adopt frameworks, dependencies, memory systems, review systems, or
 security tools merely because they exist.
+
+Specialized skills and external tool adapters are not part of the current
+repository. They may be adopted later by deliberate human + ChatGPT decision,
+which must also create the surface that holds them. Do not create placeholder
+directories in advance.
 
 ## State/memory
 

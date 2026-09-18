@@ -5,17 +5,10 @@ docs/ stores durable project truth and durable supporting evidence.
 Create subdirectories/files only when real project content requires them. Do
 not pre-populate empty documentation trees.
 
-Current operating-stack architecture: `architecture/agent-operating-stack.md`.
+## Current structure
 
-Typical namespaces:
-
-- product/ — accepted product intent, requirements, behavior.
-- architecture/ — current accepted architecture.
-- adr/ — consequential architecture/operating decisions; supersede explicitly.
-- engineering/ — durable project engineering standards.
-- research/ — research future decisions/work need to recover.
-- plans/ — execution intent; plans are not proof of completion.
-- runbooks/ — operational procedures for the project/system.
+- `architecture/agent-operating-stack.md` — current accepted V1 operating-stack
+  architecture.
 
 ## Truth discipline
 

@@ -21,7 +21,8 @@ Confirm:
 - accepted ADRs/policies are not being silently contradicted;
 - the task is bounded enough for one execution/PR;
 - the minimum relevant context is known;
-- required workflow/skills/tools have been consciously selected;
+- the primary workflow has been consciously selected, or deliberately set to
+  None when no reusable workflow applies;
 - success can be verified.
 
 If not, resolve the missing decision or split the task first.
@@ -52,7 +53,8 @@ Do not tell Arena to read the whole repository by default.
 List closed decisions Arena must not reopen.
 
 ### Required workflow
-Select one primary workflow when applicable.
+Select one primary workflow when applicable. When no reusable workflow applies,
+write None.
 
 ### Selected skills / tools
 List only capabilities deliberately approved for this task.
@@ -101,11 +103,11 @@ When writing Arena instructions:
 
 ## Canonical Arena execution prompt
 
-Use this prompt shape for normal Arena dispatch. Substitute only the repository
-and assigned Issue number as needed.
+Use this prompt shape for normal Arena dispatch. Substitute the actual
+`<owner>/<repo>` of this repository and the assigned Issue number.
 
 ```text
-Open `anthracite-labs/MainTemplate`.
+Open `<owner>/<repo>`.
 
 Your assigned task is Issue #N.
 
@@ -127,10 +129,9 @@ duplicating it here.
 
 For each task, choose deliberately:
 
-- workflow;
-- skill(s), if any;
+- workflow, or None when no reusable workflow applies;
 - deterministic scripts/checks;
-- approved external tools, if any.
+- any other deliberately approved capability, if any.
 
 A capability is not active just because it exists in the repo.
 
@@ -144,7 +145,7 @@ Before creating the Issue, answer yes to each:
 - Does it know what is authoritative?
 - Does the external prompt establish root policy → Arena policy → assigned Issue?
 - Are closed decisions explicitly closed?
-- Is the primary workflow selected?
+- Is the primary workflow selected, or explicitly None?
 - Are specialized capabilities selected only when needed?
 - Are constraints and out-of-scope boundaries explicit?
 - Is success independently verifiable?
