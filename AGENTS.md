@@ -95,11 +95,12 @@ Conflict rules:
 
 - ChatGPT project bootstrap: external project instructions should only point to
   /AGENTS.md and then /.agents/chatgpt/AGENTS.md.
-- Arena bootstrap: the external Arena prompt points to one assigned GitHub
-  Issue. That Issue points Arena to /AGENTS.md, /.agents/arena/AGENTS.md, and
-  exact task references/workflow/skills/tools.
+- Arena bootstrap: the external Arena prompt identifies the assigned task and
+  directs Arena to read /AGENTS.md, then /.agents/arena/AGENTS.md, then the
+  assigned GitHub Issue. The Issue contains only task-specific
+  references/workflow/skills/tools.
 
-External bootstrap instructions are pointers, not duplicated policy.
+External bootstrap instructions are navigation pointers, not duplicated policy.
 
 ## Progressive disclosure
 
@@ -111,8 +112,8 @@ Agents must:
 - avoid copying deeper procedures into root instructions;
 - avoid loading unused skills/tools.
 
-The Issue tells Arena where to look, what to use, when to use it, and what
-result/evidence is expected.
+After boot policy is loaded, the assigned Issue tells Arena which task-specific
+references/workflow/skills/tools are active and what result/evidence is expected.
 
 ## Verification principle
 
