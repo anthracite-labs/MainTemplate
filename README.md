@@ -20,8 +20,9 @@ the permanent system of record.
 ## Where to read next
 
 - [`AGENTS.md`](AGENTS.md) — the repository operating map: source-of-truth
-  rule, authority precedence, role routing, progressive disclosure,
-  verification, and escalation. Start there for any operating question.
+  rule, authority domains and conflict rules, role routing, progressive
+  disclosure, verification, and escalation. Start there for any operating
+  question.
 - [Issue #1](https://github.com/anthracite-labs/MainTemplate/issues/1) — the
   locked V1 build guide that the initial operating stack is being constructed
   from.

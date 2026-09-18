@@ -31,28 +31,37 @@ The locked V1 build guide is [Issue #1](https://github.com/anthracite-labs/MainT
 - Any durable decision that a future agent will need must be encoded in the
   repository or in a GitHub Issue before execution relies on it.
 
-## Authority / precedence
+## Authority domains and conflict rules
 
-When sources conflict, apply this precedence (highest first), unless a later
-human-approved ADR changes it:
+Authority is not one flat linear ladder. Different artifacts govern different
+dimensions:
 
-1. human-approved product truth / requirements;
-2. accepted ADRs and canonical architecture;
-3. assigned GitHub Issue task contract;
-4. root + role-specific agent instructions;
-5. selected workflow;
-6. selected skills/tools;
-7. implementation evidence: code/tests/config;
-8. research/reference material;
-9. agent inference.
+- **Project truth** — human-approved product truth and requirements, accepted
+  ADRs, and canonical architecture / other accepted project documentation.
+  Defines what is true and what has been decided.
+- **Agent operating policy** — this root `AGENTS.md` and the role-specific
+  `AGENTS.md` files (planned). Define how agents are allowed to operate.
+- **Task contract** — the assigned GitHub Issue. Defines what Arena must do
+  now, only within canonical project truth and agent operating policy.
+- **Task procedure and capability** — the selected workflow, skills, and
+  tools. Define how the bounded task is carried out.
+- **Evidence and reference** — code/tests/config as implementation evidence,
+  research/reference material, and agent inference (last). Used to verify or
+  inform work, not to silently override higher-authority truth or policy.
 
-At conflict boundaries:
+Conflict rules:
 
-- An Issue does not silently override an accepted ADR.
+- A GitHub Issue does not override accepted project truth or agent operating
+  policy merely by contradicting it.
+- If a task intentionally changes product truth, architecture, or operating
+  policy, the Issue must explicitly identify the human-approved change and
+  the task must update the canonical source.
 - Consequential architecture changes require explicit human approval and
   durable recording before implementation.
-- When sources at the same authority level conflict, stop and surface the
-  conflict rather than inventing a reconciliation.
+- When authoritative sources within the same domain conflict, stop and
+  surface the conflict rather than inventing a reconciliation.
+- Lower-scope workflow/skill/tool instructions never override the task
+  contract, operating policy, or canonical project truth.
 
 ## Repository map
 
