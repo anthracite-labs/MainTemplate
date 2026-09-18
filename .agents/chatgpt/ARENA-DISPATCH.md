@@ -99,9 +99,29 @@ When writing Arena instructions:
 - do not request private chain-of-thought;
 - do not bury the objective under background prose.
 
-The Issue should be detailed enough that the external Arena prompt can normally be:
+## Canonical Arena execution prompt
 
-> Open `owner/repo`. Your assigned task is Issue #N. Read `/AGENTS.md` completely, then read `/.agents/arena/AGENTS.md` completely, then open and execute Issue #N exactly as written. Do not work outside the Issue. Open/update the PR with required verification evidence when complete.
+Use this prompt shape for normal Arena dispatch. Substitute only the repository
+and assigned Issue number as needed.
+
+```text
+Open `anthracite-labs/MainTemplate`.
+
+Your assigned task is Issue #N.
+
+Read `/AGENTS.md` completely.
+
+Then read `/.agents/arena/AGENTS.md` completely.
+
+Then open and execute Issue #N exactly as written.
+
+Do not work outside the Issue.
+
+Open or update the PR with the required verification evidence when complete.
+```
+
+Keep the external prompt this small. Put task detail in the Issue rather than
+duplicating it here.
 
 ## Capability selection
 
