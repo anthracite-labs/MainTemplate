@@ -25,4 +25,6 @@ For each finding include:
 
 Avoid speculative style noise.
 
-A review is advisory unless the Issue/GitHub rules make a deterministic check blocking.
+Individual review findings do not automatically become deterministic blockers.
+Merge approval still follows the operating model and the ChatGPT/human review
+contract (`../chatgpt/AGENTS.md`, Reviewing Arena).
