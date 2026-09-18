@@ -96,7 +96,10 @@ At minimum, when applicable:
 4. inspect the complete final diff for unrelated changes;
 5. map evidence back to every acceptance criterion;
 6. open/update one coherent PR referencing the assigned Issue;
-7. return concise result and verification evidence.
+7. return concise result and verification evidence;
+8. mention a blocker or human decision only when one genuinely remains.
+
+Do not narrate obvious intermediate work.
 
 Never weaken tests/checks merely to make them pass unless the Issue explicitly
 requires a legitimate change to those checks.
