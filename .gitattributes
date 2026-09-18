@@ -1,0 +1,3 @@
+# Markdown: allow two-space hard line breaks; all other whitespace and
+# conflict-marker checks still apply.
+*.md whitespace=-blank-at-eol
