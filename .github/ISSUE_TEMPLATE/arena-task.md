@@ -35,7 +35,9 @@ Do not read unrelated repository material unless execution exposes a concrete ne
 
 # Required workflow
 
-.agents/workflows/<workflow>.md
+<!-- Select one reusable workflow when applicable. If none applies, write None. -->
+
+.agents/workflows/<workflow>.md | None
 
 # Selected skills / tools
 
