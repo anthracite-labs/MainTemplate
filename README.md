@@ -11,15 +11,15 @@ durable project record.
 - AGENTS.md — repository constitution, authority model, map, and routing.
 - .agents/chatgpt/AGENTS.md — how ChatGPT works with the human.
 - .agents/arena/AGENTS.md — how Arena executes assigned work.
-- Issue #1 — V1 build guide and architecture record.
+- docs/architecture/agent-operating-stack.md — current V1 architecture.
 
 ## Operating loop
 
 1. Human + ChatGPT think, research, and decide.
 2. Durable decisions are encoded in GitHub/repo.
 3. ChatGPT creates a bounded GitHub Issue for Arena.
-4. The external Arena prompt directs Arena to read /AGENTS.md, then
-   /.agents/arena/AGENTS.md, then the assigned Issue.
+4. ChatGPT dispatches Arena with the canonical prompt in
+   .agents/chatgpt/ARENA-DISPATCH.md.
 5. The Issue selects only the task-specific references/workflow/skills/tools
    required for that task.
 6. Arena executes, runs verification, and opens/updates a PR with evidence.
@@ -27,8 +27,8 @@ durable project record.
 8. Merge updates the durable project record.
 
 External ChatGPT project instructions should only point to repo-owned ChatGPT
-instructions. External Arena prompts should stay short and own only the boot
-sequence: root policy, Arena policy, then the assigned Issue.
+instructions. External Arena prompts should stay short and use the canonical
+prompt defined in .agents/chatgpt/ARENA-DISPATCH.md.
 
 ## Design principles
 
