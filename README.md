@@ -1,39 +1,40 @@
 # MainTemplate
 
-MainTemplate is a repository-native agent operating template: a minimal,
-durable stack for running a project with a human owner, a guiding AI
-(ChatGPT), and an executing AI (Arena), with the GitHub repository itself as
-the permanent system of record.
-
-## Operating model
+MainTemplate is a repository-native operating template for a human owner,
+ChatGPT as technical guide, Arena as execution operator, and GitHub as the
+durable project record.
 
 > Human thinks. ChatGPT guides. Arena executes. GitHub remembers.
 
-- The **Human** owns intent, strategy, product decisions, and final judgment.
-- **ChatGPT** researches, challenges assumptions, and compiles bounded
-  execution Issues.
-- **Arena** executes those Issues and returns verified evidence in pull
-  requests.
-- **GitHub** (this repository) is where project truth lives: files, Issues,
-  PRs, branches, history, and accepted docs.
+## Start here
 
-## Where to read next
+- AGENTS.md — repository constitution, authority model, map, and routing.
+- .agents/chatgpt/AGENTS.md — how ChatGPT works with the human.
+- .agents/arena/AGENTS.md — how Arena executes assigned work.
+- Issue #1 — V1 build guide and architecture record.
 
-- [`AGENTS.md`](AGENTS.md) — the repository operating map: source-of-truth
-  rule, authority domains and conflict rules, role routing, progressive
-  disclosure, verification, and escalation. Start there for any operating
-  question.
-- [Issue #1](https://github.com/anthracite-labs/MainTemplate/issues/1) — the
-  locked V1 build guide that the initial operating stack is being constructed
-  from.
+## Operating loop
 
-## Build status
+1. Human + ChatGPT think, research, and decide.
+2. Durable decisions are encoded in GitHub/repo.
+3. ChatGPT creates a bounded GitHub Issue for Arena.
+4. Arena loads only the context/workflow/skills/tools named by that Issue.
+5. Arena executes, runs verification, and opens/updates a PR with evidence.
+6. Human + ChatGPT review the actual diff and evidence.
+7. Merge updates the durable project record.
 
-The operating stack is being built incrementally through bounded Issues/PRs,
-one phase at a time, tracked against Issue #1. Deeper role instructions
-(`.agents/`), workflows, skills, docs namespaces, deterministic scripts, and
-evals arrive as their phases land; `AGENTS.md` distinguishes what exists today
-from what is planned.
+External ChatGPT project instructions should only point to repo-owned ChatGPT
+instructions. External Arena prompts should normally only point Arena at the
+assigned GitHub Issue.
 
-Speculative dependencies, frameworks, and placeholder layers are intentionally
-absent — capabilities are added only when a demonstrated need justifies them.
+## Design principles
+
+- repo truth over conversational memory;
+- progressive disclosure over giant prompts;
+- deterministic verification over self-asserted completion;
+- task-specific capability selection over always-on tool stacks;
+- smallest coherent mechanism first;
+- no external memory or framework owns canonical project truth.
+
+Specialized skills and external tools are not bundled by default. They are added
+only when the human + ChatGPT decide a demonstrated task need justifies them.

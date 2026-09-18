@@ -1,0 +1,7 @@
+# Sensitive operating surfaces
+/AGENTS.md @anthracite-labs
+/.agents/ @anthracite-labs
+/.github/ @anthracite-labs
+/scripts/ @anthracite-labs
+/evals/ @anthracite-labs
+/docs/adr/ @anthracite-labs
