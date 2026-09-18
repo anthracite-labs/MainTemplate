@@ -18,14 +18,17 @@ durable project record.
 1. Human + ChatGPT think, research, and decide.
 2. Durable decisions are encoded in GitHub/repo.
 3. ChatGPT creates a bounded GitHub Issue for Arena.
-4. Arena loads only the context/workflow/skills/tools named by that Issue.
-5. Arena executes, runs verification, and opens/updates a PR with evidence.
-6. Human + ChatGPT review the actual diff and evidence.
-7. Merge updates the durable project record.
+4. The external Arena prompt directs Arena to read /AGENTS.md, then
+   /.agents/arena/AGENTS.md, then the assigned Issue.
+5. The Issue selects only the task-specific references/workflow/skills/tools
+   required for that task.
+6. Arena executes, runs verification, and opens/updates a PR with evidence.
+7. Human + ChatGPT review the actual diff and evidence.
+8. Merge updates the durable project record.
 
 External ChatGPT project instructions should only point to repo-owned ChatGPT
-instructions. External Arena prompts should normally only point Arena at the
-assigned GitHub Issue.
+instructions. External Arena prompts should stay short and own only the boot
+sequence: root policy, Arena policy, then the assigned Issue.
 
 ## Design principles
 
