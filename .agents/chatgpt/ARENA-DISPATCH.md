@@ -2,7 +2,7 @@
 
 This file defines how ChatGPT converts an approved human decision or bounded task into a GitHub Issue that Arena can execute.
 
-The external prompt to Arena should stay short. The Issue carries the detailed execution contract.
+The external prompt to Arena should stay short. It owns the boot/navigation sequence; the Issue carries the detailed execution contract.
 
 ## Core rule
 
@@ -39,13 +39,12 @@ Only context needed to execute correctly.
 ### Authority
 Identify any canonical product/architecture/ADR/policy sources that govern the task.
 
-### Read in this order
-Always begin with:
+### Task-specific references
+List only the exact task-specific references Arena needs after opening the
+Issue, in the order they should be loaded. If none, say none.
 
-1. `/AGENTS.md`
-2. `/.agents/arena/AGENTS.md`
-
-Then list exact task-specific references in the order Arena should load them.
+Do not repeat `/AGENTS.md` or `/.agents/arena/AGENTS.md` here; the external
+Arena prompt loads those before the Issue.
 
 Do not tell Arena to read the whole repository by default.
 
@@ -102,7 +101,7 @@ When writing Arena instructions:
 
 The Issue should be detailed enough that the external Arena prompt can normally be:
 
-> Open `owner/repo`. Read Issue #N and execute it exactly as written. Do not work outside its scope. Open/update the PR with required evidence when complete.
+> Open `owner/repo`. Your assigned task is Issue #N. Read `/AGENTS.md` completely, then read `/.agents/arena/AGENTS.md` completely, then open and execute Issue #N exactly as written. Do not work outside the Issue. Open/update the PR with required verification evidence when complete.
 
 ## Capability selection
 
@@ -123,7 +122,7 @@ Before creating the Issue, answer yes to each:
 
 - Does Arena know the exact outcome?
 - Does it know what is authoritative?
-- Does it know exactly what to read first?
+- Does the external prompt establish root policy → Arena policy → assigned Issue?
 - Are closed decisions explicitly closed?
 - Is the primary workflow selected?
 - Are specialized capabilities selected only when needed?
