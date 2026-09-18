@@ -5,6 +5,8 @@ docs/ stores durable project truth and durable supporting evidence.
 Create subdirectories/files only when real project content requires them. Do
 not pre-populate empty documentation trees.
 
+Current operating-stack architecture: `architecture/agent-operating-stack.md`.
+
 Typical namespaces:
 
 - product/ — accepted product intent, requirements, behavior.

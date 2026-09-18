@@ -3,7 +3,7 @@
 This file is the root operating map for MainTemplate: a constitution plus a map,
 not a handbook. Load deeper instructions only when a task requires them.
 
-The V1 build guide is Issue #1.
+The current V1 operating architecture is `docs/architecture/agent-operating-stack.md`.
 
 ## Operating model
 
@@ -71,13 +71,16 @@ Conflict rules:
 
 ### Durable project truth
 
-- docs/ — project truth/supporting evidence; create real subdirectories only
-  when real content requires them.
+- docs/architecture/agent-operating-stack.md — current V1 operating-stack
+  architecture.
+- docs/ — other project truth/supporting evidence; create real subdirectories
+  only when real content requires them.
 - Issues/PRs/branches/Git history — task state, execution history, review
   evidence.
 
 ### Deterministic/enforcement layer
 
+- .gitattributes — path-aware Git content/whitespace policy used by verification.
 - scripts/verify — stable verification entry point.
 - scripts/repo-check — repository operating-invariant checks.
 - .github/ISSUE_TEMPLATE/arena-task.md — standard Arena task contract.
@@ -95,9 +98,9 @@ Conflict rules:
 
 - ChatGPT project bootstrap: external project instructions should only point to
   /AGENTS.md and then /.agents/chatgpt/AGENTS.md.
-- Arena bootstrap: the external Arena prompt identifies the assigned task and
-  directs Arena to read /AGENTS.md, then /.agents/arena/AGENTS.md, then the
-  assigned GitHub Issue. The Issue contains only task-specific
+- Arena bootstrap: use the canonical execution prompt defined in
+  .agents/chatgpt/ARENA-DISPATCH.md. It loads standing operating policy before
+  the assigned Issue; the Issue contains only task-specific
   references/workflow/skills/tools.
 
 External bootstrap instructions are navigation pointers, not duplicated policy.
