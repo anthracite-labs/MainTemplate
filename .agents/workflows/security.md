@@ -38,27 +38,19 @@ truth, and the Issue. It does not authorize a change outside the assigned task.
 
 ## Deep-audit execution safety
 
-When `.agents/skills/security-audit/` is selected, preserve its universal
-execution-safety requirements exactly. Full target-controlled execution is
-permitted only if the actual environment can enforce all required isolation,
-including as applicable:
+When `.agents/skills/security-audit/` is selected, its `SKILL.md` owns the
+exact universal execution-safety contract for target-controlled execution —
+sandbox isolation, environment sanitization, write isolation, and resource
+limits. Read and satisfy that contract exactly; full target-controlled
+execution is permitted only where every control it requires can actually be
+enforced in the real environment.
 
-- no external network (only isolated loopback when local client/server traffic
-  is needed);
-- a sanitized allowlisted environment, scratch-local home/temp/cache, no
-  credentials;
-- read-only target and toolchain where required, with bounded writable scratch
-  only;
-- explicit CPU, memory, process, file-size, disk, and wall-clock limits;
-- no live/shared production probing, external services, shared identities, or
-  production data.
-
-If any required control cannot be enforced, **do not pretend a full dynamic
-validation occurred**. Use source/guidance mode, retain the candidate as
-`needs_validation`, state the exact missing control/fact, and give an exact
-safe validation plan. The discovered vulnerability agent must not be the sole
-agent that verifies it; the selected capability's independent-validation rule
-applies.
+If any required control cannot be enforced, **do not claim a full dynamic
+audit occurred**. Use the capability's permitted source/guidance path, retain
+unresolved candidates as `needs_validation` with the exact missing
+controls/facts stated and a safe validation plan. The capability's
+independent-validation rule applies: the discovering agent is never the sole
+verifier of its own finding.
 
 ## Rules
 

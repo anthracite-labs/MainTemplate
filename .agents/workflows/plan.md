@@ -4,23 +4,11 @@ Use for a bounded implementation plan when the solution direction is already
 sufficiently decided. Do not use it to force unresolved consequential decisions
 into an Arena task.
 
-For planning that needs a selected specialized capability, route deliberately:
-
-- large, ambiguous work whose route is not clear →
-  `.agents/skills/wayfinder/SKILL.md`;
-- substantial feature work whose product/design meaning would be compressed by
-  one Arena contract → `.agents/skills/to-spec/SKILL.md`;
-- settled work that needs decomposition into bounded PR-sized execution units
-  → `.agents/skills/to-tickets/SKILL.md`;
-- decisions needing structured interrogation →
-  `.agents/skills/grilling/SKILL.md` (not ordinary small questions);
-- domain vocabulary/edge semantics that are actively changing →
-  `.agents/skills/domain-modeling/SKILL.md`;
-- a question materially easier to answer with a runnable/visible artifact →
-  `.agents/skills/prototype/SKILL.md`.
-
-These are Human + ChatGPT planning capabilities. They route beneath the root
-authority model; they do not create a second planning authority.
+When planning needs more structure than this workflow, consult
+`.agents/skills/README.md` and deliberately select the minimum planning
+capability whose documented trigger matches the task. These are Human +
+ChatGPT selections made before an Arena Issue exists; they route beneath the
+root authority model and create no second planning authority.
 
 ## Procedure
 

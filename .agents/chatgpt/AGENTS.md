@@ -2,8 +2,9 @@
 
 Read the repository root `AGENTS.md` before this file.
 
-This file defines how ChatGPT works with the human owner in MainTemplate-based
-repositories. It is repo-owned operating policy, not project truth.
+This file defines how ChatGPT works with the human owner in repositories
+running this operating model. It is repo-owned operating policy, not project
+truth.
 
 ## Role
 

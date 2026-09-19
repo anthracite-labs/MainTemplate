@@ -11,18 +11,32 @@ recorded once in [PROVENANCE.md](PROVENANCE.md).
 
 ## Activation model
 
-A capability is a subordinate procedure, active only when:
+A capability is a subordinate procedure. Root `/AGENTS.md` owns the general
+activation rule: exactly three paths activate a capability, and a capability's
+mere existence never does.
 
-- the assigned GitHub Issue selects it by repo-relative path (e.g.
-  `.agents/skills/tdd/SKILL.md` under "Selected skills / tools"), or
-- governing policy makes it universally required (none currently are).
+- **Human + ChatGPT planning selection** (before any Arena Issue exists):
+  planning/guidance capabilities below are deliberately selected when Human +
+  ChatGPT need help thinking, deciding, mapping, specifying, or compiling
+  work. Select the minimum capability needed, at its exact capability path.
+  The capability remains subordinate to root and ChatGPT policy; it may help
+  create durable decisions, specs, maps, or Arena Issues. No Arena Issue is
+  required for this path.
+- **Arena execution selection**: execution capabilities below are active only
+  when the assigned GitHub Issue selects them by repo-relative path (e.g.
+  `.agents/skills/tdd/SKILL.md` under "Selected skills / tools") and states
+  why they apply. Arena does not select capabilities for itself merely because
+  they exist.
+- **Policy-required procedure**: governing policy may make a procedure
+  universally required. No skill is universally required. `scripts/verify` is
+  a universally required repository procedure, not a skill.
 
-A capability existing here does not make it active for any task. Do not load
-capabilities "because they are there". Read a selected capability's `SKILL.md`
-first; load its support files only when its procedure reaches them (progressive
-disclosure). Where one capability depends on another, the reference is an
-explicit repo-relative path, and the referenced capability is read directly —
-there is no installer, router, or proprietary invocation tool.
+Do not load capabilities "because they are there". Read a selected
+capability's `SKILL.md` first; load its support files only when its procedure
+reaches them (progressive disclosure). Where one capability depends on
+another, the reference is an explicit repo-relative path, and the referenced
+capability is read directly — there is no installer, router, or proprietary
+invocation tool.
 
 Every subdirectory here contains an actually adopted capability. Empty
 placeholder directories are prohibited and rejected by `scripts/repo-check`.
@@ -42,7 +56,7 @@ Arena does not select these for itself.
 | Capability | Purpose |
 |---|---|
 | [grilling](grilling/SKILL.md) | Structured interrogation of a plan/decision: decision tree, frontier rounds, facts found by the agent, consequential decisions made by the human; done only when the frontier is genuinely empty. Selected deliberately — not for ordinary small questions. |
-| [domain-modeling](domain-modeling/SKILL.md) | Build/sharpen precise shared vocabulary; challenge ambiguous terms; concrete edge-case scenarios; cross-check claims against code; lazy `CONTEXT.md` and sparing ADRs in generated projects. |
+| [domain-modeling](domain-modeling/SKILL.md) | Build/sharpen precise shared vocabulary; challenge ambiguous terms; concrete edge-case scenarios; cross-check claims against code; lazy `CONTEXT.md` and sparing ADRs in the project being modeled. |
 | [wayfinder](wayfinder/SKILL.md) | Chart large, ambiguous work as a durable GitHub map of decision tickets; work the decision frontier until the route to implementation is clear. |
 | [to-spec](to-spec/SKILL.md) | Synthesize a substantial feature spec (GitHub Issue) from settled discussion: problem, outcome, meaningful user stories, decisions, seams, testing, out of scope. |
 | [to-tickets](to-tickets/SKILL.md) | Decompose a spec/plan into tracer-bullet vertical-slice GitHub Issues with real blocking edges; each executable ticket is a valid bounded Arena task contract. |
@@ -61,8 +75,9 @@ Arena does not select these for itself.
 
 ### Canonical workflows are not skills
 
-Debugging and review have one canonical owner each in `.agents/workflows/`
-(`debug.md`, `review.md`), which were rebuilt from stronger upstream mechanisms
-(see [PROVENANCE.md](PROVENANCE.md)). There is deliberately no `debugging` or
-`code-review` skill directory: a workflow plus a duplicated skill would create
-two competing owners. Research is owned solely by `.agents/RESEARCH.md`.
+Debugging and review each have one canonical owner in `.agents/workflows/`
+(`debug.md`, `review.md`); the upstream mechanisms they are built from are
+recorded in [PROVENANCE.md](PROVENANCE.md). There is deliberately no
+`debugging` or `code-review` skill directory: a workflow plus a duplicated
+skill would create two competing owners. Research is owned solely by
+`.agents/RESEARCH.md`.

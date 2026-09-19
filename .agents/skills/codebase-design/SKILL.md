@@ -101,7 +101,8 @@ When designing an interface, ask:
   shape.
 - **One adapter means a hypothetical seam. Two adapters means a real one.**
   Don't introduce a seam unless something actually varies across it. This is
-  the design-side twin of MainTemplate's no-speculative-structure rule.
+  the design-side twin of the no-speculative-structure rule in root
+  `/AGENTS.md`.
 
 ## Designing for testability
 

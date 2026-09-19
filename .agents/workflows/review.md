@@ -2,8 +2,8 @@
 
 Use for an independent review of a proposed change. This is the repository's
 one canonical review procedure; there is deliberately no duplicate code-review
-skill. It is rebuilt from the independent-axis mechanism recorded in
-`.agents/skills/PROVENANCE.md`, retaining MainTemplate's risk and evidence
+skill. It implements the independent-axis mechanism recorded in
+`.agents/skills/PROVENANCE.md`, with this repository's risk and evidence
 requirements.
 
 ## Establish the review set

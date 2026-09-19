@@ -50,8 +50,9 @@ the top of the prototype.
 5. **Surface the state.** After every action (logic) or on every variant switch
    (UI), print or render the full relevant state so the user can see what
    changed.
-6. **Record the answer, then delete the artifact.** MainTemplate retention
-   policy — this replaces the upstream "commit to a throwaway branch" default:
+6. **Record the answer, then delete the artifact.** This repository's
+   retention policy — prototypes are temporary by default; this replaces the
+   upstream "commit to a throwaway branch" default:
    - fold any validated decision into the real project decisions (canonical
      docs/ADRs, the spec, or the Issue, per the durable-decision rule);
    - record the **question, the evidence, and the conclusion** in the relevant

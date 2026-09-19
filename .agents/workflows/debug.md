@@ -5,8 +5,8 @@ the repository's one canonical debugging procedure; there is deliberately no
 separate debugging skill. It is adapted from the stronger diagnosing-bugs
 mechanism recorded in `.agents/skills/PROVENANCE.md`.
 
-When exploring a generated project, read its domain glossary (`CONTEXT.md`, if
-it exists) and accepted ADRs relevant to the failure. Redact secrets from every
+When exploring the project, read its domain glossary (`CONTEXT.md`, if it
+exists) and accepted ADRs relevant to the failure. Redact secrets from every
 shown command, output, trace, fixture, and captured artifact: use
 `<REDACTED>`, build loops against environment variables, and quote only the
 lines carrying the signal.
@@ -57,7 +57,7 @@ fast deterministic loop is tight.
 
 ### When a red-capable reproduction genuinely cannot be produced
 
-MainTemplate does not make execution impossible in this case. Establish the
+This workflow does not make execution impossible in this case. Establish the
 **strongest available failing evidence** instead. Say exactly:
 
 - what evidence is missing;

@@ -69,10 +69,11 @@ nothing to record beyond "we did the obvious thing."
   considered GraphQL and picked REST for subtle reasons, record it; otherwise
   someone will suggest GraphQL again in six months.
 
-## MainTemplate note
+## Authority note
 
-In MainTemplate-based repositories, consequential architecture changes require
-explicit human approval and durable recording (root `/AGENTS.md`). An ADR is
+In repositories running this operating model, consequential architecture
+changes require explicit human approval and durable recording (root
+`/AGENTS.md`). An ADR is
 one accepted durable destination for that recording; accepted architecture docs
 are another. An ADR never overrides the authority model — it is project truth
 produced under it.

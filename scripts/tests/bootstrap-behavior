@@ -1,0 +1,665 @@
+#!/usr/bin/env sh
+# Deterministic, offline behavior tests for scripts/bootstrap-repository.
+#
+# Each scenario runs the real bootstrap against a fixture Git repository with
+# a mocked `gh` on PATH (the controlled mockable boundary): no network, no
+# mutation of any real repository or of GitHub state. GitHub responses and
+# writes are fixture files plus a mutation log, so ordering, idempotence, and
+# refusal behavior are asserted exactly. POSIX sh + git + jq only.
+set -u
+
+T=$(mktemp -d "${TMPDIR:-/tmp}/bootstrap-behavior.XXXXXX")
+cleanup() { rm -rf "$T"; }
+trap cleanup EXIT HUP INT TERM
+
+TESTS_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SCRIPTS_DIR=$(CDPATH= cd -- "$TESTS_DIR/.." && pwd)
+BOOTSTRAP="$SCRIPTS_DIR/bootstrap-repository"
+[ -x "$BOOTSTRAP" ] || {
+  printf '%s\n' "bootstrap-behavior: missing $BOOTSTRAP" >&2
+  exit 1
+}
+
+MANAGED_PATHS=$(awk -F"'" '/^MANAGED_PATHS=/ {print $2}' "$BOOTSTRAP")
+[ -n "$MANAGED_PATHS" ] || {
+  printf '%s\n' "bootstrap-behavior: cannot read MANAGED_PATHS from $BOOTSTRAP" >&2
+  exit 1
+}
+
+# ---------------------------------------------------------------- harness
+
+n=0
+failed=0
+okc() {
+  n=$((n + 1))
+  printf 'ok %d - %s\n' "$n" "$1"
+}
+badc() {
+  n=$((n + 1))
+  failed=$((failed + 1))
+  printf 'not ok %d - %s\n' "$n" "$1"
+  if [ $# -gt 1 ]; then
+    printf '%s\n' "$2" | sed 's/^/    /' >&2
+  fi
+}
+expect_ok() {
+  d=$1
+  shift
+  if "$@" >"$T/case.out" 2>"$T/case.err"; then
+    okc "$d"
+  else
+    badc "$d" "command failed: $(cat "$T/case.err" "$T/case.out")"
+  fi
+}
+expect_fail() {
+  d=$1
+  shift
+  if "$@" >"$T/case.out" 2>"$T/case.err"; then
+    badc "$d" "unexpectedly succeeded: $(cat "$T/case.out")"
+  else
+    okc "$d"
+  fi
+}
+assert_out() { # <desc> <needle in last command output>
+  if grep -qF -e "$2" "$T/case.err" "$T/case.out" 2>/dev/null; then
+    okc "$1"
+  else
+    badc "$1" "expected output containing: $2"
+  fi
+}
+assert_eq() { # <desc> <got> <want>
+  if [ "$2" = "$3" ]; then
+    okc "$1"
+  else
+    badc "$1" "expected '$3', got '$2'"
+  fi
+}
+assert_file_eq() { # <desc> <file1> <file2>
+  if cmp -s "$2" "$3"; then
+    okc "$1"
+  else
+    badc "$1" "files differ: $2 vs $3"
+  fi
+}
+assert_empty() { # <desc> <file>
+  if [ ! -s "$2" ]; then
+    okc "$1"
+  else
+    badc "$1" "expected empty file: $2 ($(head -c 200 "$2"))"
+  fi
+}
+
+# ---------------------------------------------------------------- mock gh
+
+mockbin=$T/bin
+mkdir -p "$mockbin"
+cat >"$mockbin/gh" <<'MOCK'
+#!/usr/bin/env sh
+M=${MOCK_STATE:?MOCK_STATE not set}
+die() {
+  printf 'mock-gh: %s\n' "$*" >&2
+  exit 9
+}
+case ${1:-} in
+  repo)
+    [ "${2:-}" = view ] || die "unsupported: repo ${2:-}"
+    jq -r '.nameWithOwner // ""' "$M/repo.json"
+    exit 0
+    ;;
+  api) ;;
+  *) die "unsupported subcommand: ${1:-}" ;;
+esac
+[ $# -gt 0 ] || die "missing arguments"
+shift
+method=GET
+header=0
+url=
+while [ $# -gt 0 ]; do
+  case $1 in
+    -X)
+      method=${2:-GET}
+      shift
+      ;;
+    -i)
+      header=1
+      ;;
+    -H)
+      shift
+      ;;
+    --input) shift ;;
+    -q | --jq) shift ;;
+    *)
+      [ -n "$url" ] || url=$1
+      ;;
+  esac
+  shift
+done
+[ -n "$url" ] || die "no url"
+case $url in
+  */rulesets | */rulesets\?*)
+    if [ "$method" != GET ]; then
+      body=$(cat)
+      {
+        printf '%s %s body: ' "$method" "$url"
+        printf '%s\n' "$body"
+      } >>"$M/mutations.log"
+      slug=$(printf '%s' "$url" | sed -E 's#.*repos/([^/]+/[^/]+)/rulesets.*#\1#')
+      stored=$(printf '%s' "$body" | jq --arg src "$slug" '{name: .name, target: .target, enforcement: .enforcement, conditions: .conditions, bypass_actors: (.bypass_actors // []), rules: .rules, id: 424242, source_type: "Repository", source: $src}')
+      printf '%s\n' "$stored" >"$M/ruleset-424242.json"
+      jq --argjson o "$stored" '. + [$o]' "$M/rulesets-repo.json" >"$M/tmp.json" &&
+        mv "$M/tmp.json" "$M/rulesets-repo.json"
+      jq --argjson o "$stored" '. + [$o]' "$M/rulesets-all.json" >"$M/tmp.json" &&
+        mv "$M/tmp.json" "$M/rulesets-all.json"
+      printf '%s\n' '{"id":424242,"name":"Protect main","target":"branch","source_type":"Repository","enforcement":"active"}'
+      exit 0
+    fi
+    case $url in
+      *includes_parents=false*) cat "$M/rulesets-repo.json" ;;
+      *includes_parents=true*) cat "$M/rulesets-all.json" ;;
+      *) die "ambiguous ruleset list url: $url" ;;
+    esac
+    ;;
+  */rulesets/*)
+    id=${url##*/}
+    if [ "$method" = PUT ]; then
+      body=$(cat)
+      {
+        printf '%s %s body: ' "$method" "$url"
+        printf '%s\n' "$body"
+      } >>"$M/mutations.log"
+      stored=$(printf '%s' "$body" | jq --arg id "$id" '{name: .name, target: .target, enforcement: .enforcement, conditions: .conditions, bypass_actors: (.bypass_actors // []), rules: .rules, id: ($id | tonumber), source_type: "Repository", source: (.source // $source)}' --arg source "$(jq -r '.source // ""' "$M/ruleset-$id.json" 2>/dev/null)" 2>/dev/null || printf '%s' "$body")
+      printf '%s\n' "$stored" >"$M/ruleset-$id.json"
+      printf '%s\n' "$stored"
+    else
+      [ -f "$M/ruleset-$id.json" ] || die "no fixture ruleset-$id.json"
+      cat "$M/ruleset-$id.json"
+    fi
+    ;;
+  */branches/main/protection)
+    st=$(cat "$M/protection.status" 2>/dev/null || printf 404)
+    printf 'HTTP/2 %s\n' "$st"
+    ;;
+  orgs/*/teams/*/repos/*)
+    st=$(cat "$M/teamrepo.status" 2>/dev/null || printf 404)
+    printf 'HTTP/2 %s\n\n' "$st"
+    [ "$st" = 200 ] && [ -f "$M/teamrepos.json" ] && cat "$M/teamrepos.json"
+    exit 0
+    ;;
+  orgs/*/teams/*)
+    st=$(cat "$M/team.status" 2>/dev/null || printf 404)
+    printf 'HTTP/2 %s\n' "$st"
+    [ "$st" = 200 ] && printf '%s\n' '{"id":77,"name":"platform","slug":"platform"}'
+    exit 0
+    ;;
+  users/*)
+    login=${url##*/}
+    if [ -f "$M/user-$login.json" ]; then
+      [ "$header" = 1 ] && printf 'HTTP/2 200\n'
+      cat "$M/user-$login.json"
+    else
+      if [ "$header" = 1 ]; then
+        printf 'HTTP/2 404\n'
+      else
+        exit 1
+      fi
+    fi
+    ;;
+  */collaborators/*/permission)
+    seg=${url#*/collaborators/}
+    login=${seg%%/*}
+    [ -f "$M/perm-$login.json" ] || die "no fixture perm-$login.json"
+    cat "$M/perm-$login.json"
+    ;;
+  repos/*)
+    # Bare repository metadata endpoint.
+    cat "$M/repo.json"
+    ;;
+  *)
+    die "unsupported url: $url"
+    ;;
+esac
+exit 0
+MOCK
+chmod +x "$mockbin/gh"
+
+# --------------------------------------------------------- fixture helpers
+
+REPO_SLUG=owner/repo-under-test
+
+scenario() { # <name> <owner-login> <owner-type>
+  S=$T/$1
+  mkdir -p "$S/mock" "$S/repo/.github"
+  : >"$S/mock/mutations.log"
+  (cd "$S/repo" && git init -q .)
+  jq -n --arg r "$REPO_SLUG" --arg o "$2" --arg t "$3" \
+    '{nameWithOwner: $r, full_name: $r, owner: {login: $o, type: $t}}' \
+    >"$S/mock/repo.json"
+}
+exact_ruleset() { # <id>
+  jq -n --arg id "$1" --arg repo "$REPO_SLUG" '
+  {
+    id: ($id | tonumber),
+    name: "Protect main",
+    target: "branch",
+    source_type: "Repository",
+    source: $repo,
+    enforcement: "active",
+    conditions: {ref_name: {include: ["refs/heads/main"], exclude: []}},
+    rules: [
+      {type: "deletion"},
+      {type: "non_fast_forward"},
+      {type: "pull_request", parameters: {
+        required_approving_review_count: 0,
+        dismiss_stale_reviews_on_push: false,
+        required_reviewers: [],
+        require_code_owner_review: false,
+        require_last_push_approval: false,
+        required_review_thread_resolution: true,
+        require_extra_approval_for_unattributed_changes: false,
+        allowed_merge_methods: ["merge", "squash", "rebase"]}},
+      {type: "required_status_checks", parameters: {
+        strict_required_status_checks_policy: false,
+        do_not_enforce_on_create: false,
+        required_status_checks: [{context: "verify"}]}}
+    ]
+  }'
+}
+set_repo_rulesets() { # <json-array-for-repo> <json-array-for-all>
+  printf '%s\n' "$1" >"$S/mock/rulesets-repo.json"
+  printf '%s\n' "$2" >"$S/mock/rulesets-all.json"
+}
+set_user() { # <login> <type>
+  jq -n --arg t "$2" '{type: $t}' >"$S/mock/user-$1.json"
+}
+set_perm() { # <login> <permission>
+  jq -n --arg p "$2" '{permission: $p}' >"$S/mock/perm-$1.json"
+}
+set_teamrepo_perm() { # <level: pull|triage|push|maintain|admin> [role_name override] — one
+  # repo object, as the media-type direct permission check returns it
+  # (cumulative booleans + role_name; custom repository roles carry an
+  # arbitrary role_name beside the standard permission booleans).
+  rp_lvl=$1
+  rp_role=${2:-}
+  [ -n "$rp_role" ] || {
+    if [ "$rp_lvl" = push ]; then rp_role=write; else rp_role=$rp_lvl; fi
+  }
+  jq -n --arg full "$REPO_SLUG" --arg lvl "$rp_lvl" --arg role "$rp_role" '
+    {full_name: $full, role_name: $role,
+      permissions: {
+        pull: ($lvl == "pull" or $lvl == "triage" or $lvl == "push" or $lvl == "maintain" or $lvl == "admin"),
+        triage: ($lvl == "triage" or $lvl == "push" or $lvl == "maintain" or $lvl == "admin"),
+        push: ($lvl == "push" or $lvl == "maintain" or $lvl == "admin"),
+        maintain: ($lvl == "maintain" or $lvl == "admin"),
+        admin: ($lvl == "admin")}}' >"$S/mock/teamrepos.json"
+}
+default_fixtures() {
+  set_user alice User
+  set_perm alice admin
+  set_user bob User
+  set_perm bob write
+  set_user carol User
+  set_user anthracite-labs User
+  set_perm anthracite-labs admin
+}
+write_co() { # <owner field, e.g. '@alice' or '@a @b'>
+  {
+    printf '%s\n' '# Ownership of sensitive operating surfaces.'
+    printf '%s\n' '#'
+    printf '%s\n' '# fixture header commentary'
+    for p in $MANAGED_PATHS; do
+      printf '%s %s\n' "$p" "$1"
+    done
+    printf '%s\n' '/custom/ @custom-owner'
+  } >"$S/repo/.github/CODEOWNERS"
+}
+run() { # bootstrap args...
+  (cd "$S/repo" && MOCK_STATE=$S/mock PATH="$mockbin:$PATH" "$BOOTSTRAP" "$@")
+}
+
+co_owner() { # <file> <path> -> owner token incl. '@'
+  awk -v p="$1" '$1 == p {print $2}' "$2" 2>/dev/null || true
+}
+co_owner_at() { # <file> <path>
+  awk -v p="$2" '$1 == p {print $2}' "$1"
+}
+
+# ============================================================== scenarios
+
+# 1 + 6 + 9 + 14a: user-owned default; custom rules preserved; no admin
+# demanded when the ruleset already matches; rerun is a no-op.
+scenario s1 alice User
+default_fixtures
+write_co '@anthracite-labs'
+set_repo_rulesets "$(jq -n --argjson r "$(exact_ruleset 111)" '[$r]')" \
+  "$(jq -n --argjson r "$(exact_ruleset 111)" '[$r]')"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+printf '403\n' >"$S/mock/protection.status"
+cp "$S/repo/.github/CODEOWNERS" "$S/co.before"
+expect_ok 's1: apply (user-owned default, ruleset matches, no admin)' run
+assert_eq 's1: managed owner substituted with repository owner user' \
+  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/AGENTS.md')" '@alice'
+assert_eq 's1: every managed rule moved' \
+  "$(for p in $MANAGED_PATHS; do co_owner "$p" "$S/repo/.github/CODEOWNERS"; done | sort -u)" \
+  '@alice'
+assert_out 's1: custom rule preserved' '/custom/ @custom-owner'
+assert_out 's1: comment preserved' 'fixture header commentary'
+assert_empty 's1: no GitHub mutation performed' "$S/mock/mutations.log"
+cp "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
+expect_ok 's1: second apply is a no-op' run
+assert_file_eq 's1: rerun changed nothing' "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
+expect_ok 's1: --check passes without administration' run --check
+assert_out 's1: check reports satisfaction' 'all repository-specific requirements are satisfied'
+
+# 2: organization-owned repository without override refuses safely.
+scenario s2 acme Organization
+write_co '@anthracite-labs'
+set_repo_rulesets '[]' '[]'
+printf '403\n' >"$S/mock/protection.status"
+cp "$S/repo/.github/CODEOWNERS" "$S/co.before"
+expect_fail 's2: org-owned apply without --owner refuses' run
+assert_out 's2: explains the explicit-owner requirement' 'Provide a deliberate explicit owner: --owner USER'
+assert_out 's2: names ORG/TEAM option' '--owner ORG/TEAM'
+assert_file_eq 's2: CODEOWNERS untouched' "$S/repo/.github/CODEOWNERS" "$S/co.before"
+assert_empty 's2: nothing mutated on GitHub' "$S/mock/mutations.log"
+
+# 3: organization team override end to end (full token, check, no-op rerun).
+scenario s3 acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm push
+write_co '@anthracite-labs'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's3: apply with ORG/TEAM override' run --owner acme/platform
+assert_eq 's3: full team token preserved in managed rules' \
+  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/docs/')" '@acme/platform'
+expect_ok 's3: --check recognizes the managed team without arguments' run --check
+assert_out 's3: check validates the explicit owner' 'validated explicit owner (@acme/platform)'
+expect_ok 's3: --check accepts the same explicit assertion' run --check --owner acme/platform
+cp "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
+expect_ok 's3: rerun apply is a no-op' run --owner acme/platform
+assert_file_eq 's3: rerun changed nothing' "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
+
+# 3t: team eligibility — a code owner team must have write permission or
+# higher; read/pull and triage, no access, and unverifiable level are refused.
+for lvl in pull triage; do
+  scenario "s3t-$lvl" acme Organization
+  printf '200\n' >"$S/mock/team.status"
+  printf '200\n' >"$S/mock/teamrepo.status"
+  set_teamrepo_perm "$lvl"
+  write_co '@anthracite-labs'
+  expect_fail "s3t: '$lvl'-permission team is refused" run --owner acme/platform
+  assert_out "s3t: '$lvl' refusal states the write-or-higher requirement" \
+    'must have effective write permission or higher'
+done
+
+for lvl in maintain admin; do
+  scenario "s3t-$lvl" acme Organization
+  printf '200\n' >"$S/mock/team.status"
+  printf '200\n' >"$S/mock/teamrepo.status"
+  set_teamrepo_perm "$lvl"
+  write_co '@anthracite-labs'
+  set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+  exact_ruleset 111 >"$S/mock/ruleset-111.json"
+  expect_ok "s3t: '$lvl'-permission team is accepted" run --owner acme/platform
+  assert_eq "s3t: '$lvl' team token written with full ORG/TEAM form" \
+    "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/docs/')" '@acme/platform'
+done
+
+scenario s3t-noaccess acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '404\n' >"$S/mock/teamrepo.status"
+write_co '@anthracite-labs'
+expect_fail 's3t: team without repository access is refused' run --owner acme/platform
+assert_out 's3t: no-access refusal states the write-or-higher requirement' \
+  'must have effective write permission or higher'
+
+scenario s3t-unverifiable acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+rm -f "$S/mock/teamrepos.json"
+write_co '@anthracite-labs'
+expect_fail 's3t: visible team with unverifiable permission level is refused' run --owner acme/platform
+assert_out 's3t: unverifiable refusal explains the missing verification' \
+  'cannot verify the repository permission'
+
+# 3t-custom: custom repository roles carry an arbitrary role_name beside the
+# standard permission booleans; eligibility follows the effective permission
+# booleans, never the role-name string.
+scenario s3t-custom-push acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm push 'Security Engineer'
+write_co '@anthracite-labs'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's3t-custom: custom role + push:true is accepted' run --owner acme/platform
+assert_eq 's3t-custom: push custom-role owner written' \
+  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/docs/')" '@acme/platform'
+
+scenario s3t-custom-maintain acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm maintain 'Platform Operator'
+write_co '@anthracite-labs'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's3t-custom: custom role + maintain:true is accepted' run --owner acme/platform
+assert_eq 's3t-custom: maintain custom-role owner written' \
+  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/docs/')" '@acme/platform'
+
+scenario s3t-custom-admin acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm admin 'Release Administrator'
+write_co '@anthracite-labs'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's3t-custom: custom role + admin:true is accepted' run --owner acme/platform
+assert_eq 's3t-custom: admin custom-role owner written' \
+  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/docs/')" '@acme/platform'
+
+scenario s3t-custom-pull acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm pull 'Read Auditor'
+write_co '@anthracite-labs'
+expect_fail 's3t-custom: custom role + pull-only is rejected' run --owner acme/platform
+assert_out 's3t-custom: pull-only rejection states effective write requirement' \
+  'must have effective write permission or higher'
+
+scenario s3t-custom-triage acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm triage 'Issue Curator'
+write_co '@anthracite-labs'
+expect_fail 's3t-custom: custom role + triage-only is rejected' run --owner acme/platform
+assert_out 's3t-custom: triage-only rejection states effective write requirement' \
+  'must have effective write permission or higher'
+
+scenario s3t-custom-noperms acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+jq -n --arg full "$REPO_SLUG" '{full_name: $full, role_name: "Ghost Operator"}' >"$S/mock/teamrepos.json"
+write_co '@anthracite-labs'
+expect_fail 's3t-custom: custom role with no permission map is rejected as unverifiable' run --owner acme/platform
+assert_out 's3t-custom: no-permission-map refusal explains the missing data' \
+  'unverifiable permission data is refused'
+
+# 4: explicit user override eligibility — a code owner user must have write
+# permission or higher; read, triage, none, and unverifiable are refused.
+scenario s4r alice User
+set_user bob User
+write_co '@alice'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+for lvl in read triage none; do
+  set_perm bob "$lvl"
+  expect_fail "s4r: USER override with '$lvl' permission is refused" run --owner bob
+  assert_out "s4r: '$lvl' refusal states the write-or-higher requirement" \
+    'must have write permission or higher'
+done
+
+for lvl in write maintain admin; do
+  scenario "s4w-$lvl" alice User
+  set_user bob User
+  set_perm bob "$lvl"
+  write_co '@alice'
+  set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+  exact_ruleset 111 >"$S/mock/ruleset-111.json"
+  expect_ok "s4w: USER override with '$lvl' permission is accepted" run --owner bob
+  assert_eq "s4w: '$lvl' owner written to managed rules" \
+    "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/AGENTS.md')" '@bob'
+done
+
+scenario s4c alice User
+set_user carol User
+write_co '@alice'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_fail 's4c: unverifiable USER override is refused, not accepted' run --owner carol
+assert_out 's4c: refusal explains verification failure' 'must have write permission or higher'
+
+# 5: malformed overrides are rejected before anything happens.
+scenario s5 alice User
+write_co '@anthracite-labs'
+for bad in '@foo' 'org/' '/team' 'org/team/extra' 'bad owner' 'a@b' 'org//team'; do
+  expect_fail "s5: rejects --owner '$bad'" run --owner "$bad"
+done
+assert_out 's5: message explains the accepted forms' 'use USER or ORG/TEAM'
+
+# 7: managed-rule ambiguity and absence fail instead of guessing.
+scenario s7a alice User
+write_co '@anthracite-labs'
+printf '%s\n' '/docs/ @extra-owner' >>"$S/repo/.github/CODEOWNERS"
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+cp "$S/repo/.github/CODEOWNERS" "$S/co.before"
+expect_fail 's7a: duplicated managed rule fails' run
+assert_out 's7a: reports the ambiguity' 'appears 2 times'
+assert_file_eq 's7a: nothing rewritten' "$S/repo/.github/CODEOWNERS" "$S/co.before"
+
+scenario s7b alice User
+{
+  for p in $MANAGED_PATHS; do
+    [ "$p" = /docs/ ] && continue
+    printf '%s @anthracite-labs\n' "$p"
+  done
+} >"$S/repo/.github/CODEOWNERS"
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_fail 's7b: missing managed rule fails' run
+assert_out 's7b: reports the missing rule' "managed rule for '/docs/' appears 0 times"
+
+scenario s7c alice User
+write_co '@anthracite-labs @second-owner'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_fail 's7c: multi-owner managed line fails safely' run
+assert_out 's7c: refuses ambiguous line' 'refusing to rewrite an ambiguous managed line'
+
+# 8: missing administration fails before any mutation when a ruleset write is
+# required.
+scenario s8 alice User
+set_user alice User
+set_perm alice admin
+write_co '@anthracite-labs'
+set_repo_rulesets '[]' '[]'
+printf '403\n' >"$S/mock/protection.status"
+cp "$S/repo/.github/CODEOWNERS" "$S/co.before"
+expect_fail 's8: ruleset creation without administration fails before mutation' run
+assert_out 's8: names the missing capability' 'repository administration permission is required'
+assert_out 's8: states that nothing was changed' 'Nothing was changed'
+assert_file_eq 's8: working tree untouched' "$S/repo/.github/CODEOWNERS" "$S/co.before"
+assert_empty 's8: GitHub untouched' "$S/mock/mutations.log"
+
+# 10: inherited parent ruleset with the same name is not the managed ruleset.
+scenario s10a alice User
+set_user anthracite-labs User
+set_perm anthracite-labs admin
+write_co '@anthracite-labs'
+parent=$(exact_ruleset 999 | jq '.source = "parent-org/enterprise"')
+set_repo_rulesets "$(jq -n --argjson r "$(exact_ruleset 111)" '[$r]')" \
+  "$(jq -n --argjson r "$(exact_ruleset 111)" --argjson p "$parent" '[$r, $p]')"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's10a: same-name inherited ruleset is not mistaken for the managed ruleset' run --check
+assert_out 's10a: parent ruleset reported, not modified' 'inherited ruleset Protect main from parent-org/enterprise'
+
+scenario s10b alice User
+set_user alice User
+set_perm alice admin
+set_user anthracite-labs User
+set_perm anthracite-labs admin
+write_co '@anthracite-labs'
+parent_only=$(exact_ruleset 999 | jq '.source = "parent-org/enterprise"')
+set_repo_rulesets '[]' "[$parent_only]"
+printf '200\n' >"$S/mock/protection.status"
+expect_ok 's10b: apply creates its own ruleset beside a same-name parent' run
+assert_out 's10b: parent not treated as managed' 'created'
+grep -q 'POST repos/owner/repo-under-test/rulesets ' "$S/mock/mutations.log" &&
+  okc 's10b: repository-owned ruleset created' ||
+  badc 's10b: repository-owned ruleset created' 'no POST in mutation log'
+if grep -q 'PUT repos/parent-org' "$S/mock/mutations.log" 2>/dev/null; then
+  badc 's10b: parent ruleset never written' 'parent ruleset was PUT'
+else
+  okc 's10b: parent ruleset never written'
+fi
+
+# 11 + 12 + 13: normalization completeness.
+scenario s11 alice User
+set_user anthracite-labs User
+set_perm anthracite-labs admin
+write_co '@anthracite-labs'
+excluded=$(exact_ruleset 111 | jq '.conditions.ref_name.exclude = ["refs/heads/main"]')
+set_repo_rulesets "[$excluded]" "[$excluded]"
+printf '%s\n' "$excluded" >"$S/mock/ruleset-111.json"
+expect_fail 's11: ruleset excluding main is reported as a mismatch' run --check
+assert_out 's11: diff names the exclusion' 'cond-exclude'
+
+scenario s12 alice User
+set_user anthracite-labs User
+set_perm anthracite-labs admin
+write_co '@anthracite-labs'
+bypassed=$(exact_ruleset 111 | jq '.bypass_actors = [{actor_id: 555, bypass_mode: "always"}]')
+set_repo_rulesets "[$bypassed]" "[$bypassed]"
+printf '%s\n' "$bypassed" >"$S/mock/ruleset-111.json"
+expect_fail 's12: ruleset with a bypass actor is reported as a mismatch' run --check
+assert_out 's12: diff names the bypass actors' 'bypass:'
+
+scenario s13 alice User
+set_user anthracite-labs User
+set_perm anthracite-labs admin
+write_co '@anthracite-labs'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's13: exact intended ruleset reports a match' run --check
+assert_out 's13: match message' "matches the intended configuration"
+
+# 14: complete idempotence — a full second apply mutates nothing on GitHub.
+scenario s14 alice User
+set_user alice User
+set_perm alice admin
+write_co '@anthracite-labs'
+set_repo_rulesets '[]' '[]'
+printf '200\n' >"$S/mock/protection.status"
+expect_ok 's14: first apply (default owner + ruleset creation)' run
+assert_eq 's14: managed owner substituted' \
+  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/AGENTS.md')" '@alice'
+grep -q '"bypass_actors": \[\]' "$S/mock/mutations.log" &&
+  okc 's14: desired payload pins bypass_actors: []' ||
+  badc 's14: desired payload pins bypass_actors: []' 'bypass_actors missing from created payload'
+cp "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
+cp "$S/mock/mutations.log" "$S/mutations.after-first"
+expect_ok 's14: second complete apply' run
+assert_file_eq 's14: CODEOWNERS unchanged' "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
+assert_file_eq 's14: no further GitHub mutation' "$S/mock/mutations.log" "$S/mutations.after-first"
+expect_ok 's14: final --check is green' run --check
+
+# ------------------------------------------------------------------ result
+
+printf '%s\n' "1..$n"
+if [ "$failed" -gt 0 ]; then
+  printf '%s\n' "bootstrap-behavior: $failed failed" >&2
+  exit 1
+fi
+printf '%s\n' 'bootstrap-behavior: all scenarios passed'
