@@ -138,6 +138,12 @@ done
 case $url in
   */rulesets | */rulesets\?*)
     if [ "$method" != GET ]; then
+      write_status=$(cat "$M/ruleset-write.status" 2>/dev/null || printf 200)
+      if [ "$write_status" != 200 ]; then
+        cat >/dev/null || true
+        printf 'HTTP/2 %s\n' "$write_status" >&2
+        exit 1
+      fi
       body=$(cat)
       {
         printf '%s %s body: ' "$method" "$url"
@@ -162,6 +168,12 @@ case $url in
   */rulesets/*)
     id=${url##*/}
     if [ "$method" = PUT ]; then
+      write_status=$(cat "$M/ruleset-write.status" 2>/dev/null || printf 200)
+      if [ "$write_status" != 200 ]; then
+        cat >/dev/null || true
+        printf 'HTTP/2 %s\n' "$write_status" >&2
+        exit 1
+      fi
       body=$(cat)
       {
         printf '%s %s body: ' "$method" "$url"
@@ -310,6 +322,9 @@ write_co() { # <owner field, e.g. '@alice' or '@a @b'>
       printf '%s %s\n' "$p" "$1"
     done
     printf '%s\n' '/custom/ @custom-owner'
+    printf '%s\n' '*.go docs@example.com'
+    printf '%s\n' '*.js @js-owner # inline CODEOWNERS comment'
+    printf '%s\n' '/multi/ @owner-one @owner-two'
   } >"$S/repo/.github/CODEOWNERS"
 }
 run() { # bootstrap args...
@@ -341,8 +356,11 @@ assert_eq 's1: managed owner substituted with repository owner user' \
 assert_eq 's1: every managed rule moved' \
   "$(for p in $MANAGED_PATHS; do co_owner "$p" "$S/repo/.github/CODEOWNERS"; done | sort -u)" \
   '@alice'
-assert_out 's1: custom rule preserved' '/custom/ @custom-owner'
-assert_out 's1: comment preserved' 'fixture header commentary'
+assert_out 's1: custom @owner rule preserved' '/custom/ @custom-owner'
+assert_out 's1: custom email owner preserved' '*.go docs@example.com'
+assert_out 's1: custom inline comment preserved' '*.js @js-owner # inline CODEOWNERS comment'
+assert_out 's1: custom multi-owner rule preserved' '/multi/ @owner-one @owner-two'
+assert_out 's1: header comment preserved' 'fixture header commentary'
 assert_empty 's1: no GitHub mutation performed' "$S/mock/mutations.log"
 cp "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
 expect_ok 's1: second apply is a no-op' run
@@ -558,20 +576,36 @@ exact_ruleset 111 >"$S/mock/ruleset-111.json"
 expect_fail 's7c: multi-owner managed line fails safely' run
 assert_out 's7c: refuses ambiguous line' 'refusing to rewrite an ambiguous managed line'
 
-# 8: missing administration fails before any mutation when a ruleset write is
-# required.
-scenario s8 alice User
+# 8: a denied ruleset write leaves CODEOWNERS unchanged. This covers the
+# important read-vs-write permission gap: a read-only endpoint cannot prove
+# ruleset-write authority, so the real write is attempted before local install.
+scenario s8a alice User
 set_user alice User
 set_perm alice admin
 write_co '@anthracite-labs'
 set_repo_rulesets '[]' '[]'
-printf '403\n' >"$S/mock/protection.status"
+printf '403\n' >"$S/mock/ruleset-write.status"
 cp "$S/repo/.github/CODEOWNERS" "$S/co.before"
-expect_fail 's8: ruleset creation without administration fails before mutation' run
-assert_out 's8: names the missing capability' 'repository administration permission is required'
-assert_out 's8: states that nothing was changed' 'Nothing was changed'
-assert_file_eq 's8: working tree untouched' "$S/repo/.github/CODEOWNERS" "$S/co.before"
-assert_empty 's8: GitHub untouched' "$S/mock/mutations.log"
+expect_fail 's8a: denied ruleset creation fails before CODEOWNERS install' run
+assert_out 's8a: reports unsuccessful ruleset creation' 'ruleset creation did not report success'
+assert_out 's8a: explains CODEOWNERS was not changed' '.github/CODEOWNERS was not changed'
+assert_file_eq 's8a: working tree CODEOWNERS unchanged' "$S/repo/.github/CODEOWNERS" "$S/co.before"
+assert_empty 's8a: denied create produced no recorded GitHub mutation' "$S/mock/mutations.log"
+
+scenario s8b alice User
+set_user alice User
+set_perm alice admin
+write_co '@anthracite-labs'
+different=$(exact_ruleset 111 | jq '.conditions.ref_name.include = ["refs/heads/main", "refs/heads/release"]')
+set_repo_rulesets "[$different]" "[$different]"
+printf '%s\n' "$different" >"$S/mock/ruleset-111.json"
+printf '403\n' >"$S/mock/ruleset-write.status"
+cp "$S/repo/.github/CODEOWNERS" "$S/co.before"
+expect_fail 's8b: denied ruleset update fails before CODEOWNERS install' run
+assert_out 's8b: reports unsuccessful ruleset update' 'ruleset update did not report success'
+assert_out 's8b: explains CODEOWNERS was not changed' '.github/CODEOWNERS was not changed'
+assert_file_eq 's8b: working tree CODEOWNERS unchanged' "$S/repo/.github/CODEOWNERS" "$S/co.before"
+assert_empty 's8b: denied update produced no recorded GitHub mutation' "$S/mock/mutations.log"
 
 # 10: inherited parent ruleset with the same name is not the managed ruleset.
 scenario s10a alice User
@@ -593,7 +627,6 @@ set_perm anthracite-labs admin
 write_co '@anthracite-labs'
 parent_only=$(exact_ruleset 999 | jq '.source = "parent-org/enterprise"')
 set_repo_rulesets '[]' "[$parent_only]"
-printf '200\n' >"$S/mock/protection.status"
 expect_ok 's10b: apply creates its own ruleset beside a same-name parent' run
 assert_out 's10b: parent not treated as managed' 'created'
 grep -q 'POST repos/owner/repo-under-test/rulesets ' "$S/mock/mutations.log" &&
@@ -641,7 +674,6 @@ set_user alice User
 set_perm alice admin
 write_co '@anthracite-labs'
 set_repo_rulesets '[]' '[]'
-printf '200\n' >"$S/mock/protection.status"
 expect_ok 's14: first apply (default owner + ruleset creation)' run
 assert_eq 's14: managed owner substituted' \
   "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/AGENTS.md')" '@alice'
