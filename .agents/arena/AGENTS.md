@@ -53,6 +53,13 @@ Do not reopen closed product or architecture decisions.
 Use normal Arena repository/shell/Git/GitHub abilities plus only the workflows,
 skills, and tools selected by the Issue.
 
+For a selected skill, the Issue names the exact repo-relative path under
+`.agents/skills/` and why it applies. Read its `SKILL.md` first; load support
+files only when that skill's procedure reaches them. The catalog at
+`.agents/skills/README.md` is navigation/provenance context, not permission to
+load every skill. A capability existing in the repository does not make it
+active for every task.
+
 Do not independently adopt:
 
 - new agent frameworks;
@@ -64,8 +71,6 @@ Do not independently adopt:
 
 If execution reveals a concrete need for one, report the gap and why the
 current capability set is insufficient.
-
-A capability existing in the repository does not make it active for every task.
 
 ## Context and instruction safety
 

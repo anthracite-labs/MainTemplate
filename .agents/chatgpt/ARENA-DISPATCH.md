@@ -1,8 +1,10 @@
 # Arena Dispatch Compiler
 
-This file defines how ChatGPT converts an approved human decision or bounded task into a GitHub Issue that Arena can execute.
+This file defines how ChatGPT converts an approved human decision or bounded task
+into a GitHub Issue that Arena can execute.
 
-The external prompt to Arena should stay short. It owns the boot/navigation sequence; the Issue carries the detailed execution contract.
+The external prompt to Arena should stay short. It owns the boot/navigation
+sequence; the Issue carries the detailed execution contract.
 
 ## Core rule
 
@@ -23,13 +25,24 @@ Confirm:
 - the minimum relevant context is known;
 - the primary workflow has been consciously selected, or deliberately set to
   None when no reusable workflow applies;
+- the minimum capability set is known and each selected capability has an exact
+  repo-relative path and task-specific reason;
 - success can be verified.
 
-If not, resolve the missing decision or split the task first.
+If not, resolve the missing decision or split the task first. Do not compress
+substantial feature meaning into an Arena Issue: use selected planning
+capabilities first when their shape applies:
+
+- large ambiguous route → `.agents/skills/wayfinder/SKILL.md`;
+- substantial settled feature → `.agents/skills/to-spec/SKILL.md`;
+- multi-PR settled work → `.agents/skills/to-tickets/SKILL.md`.
+
+Do not send unresolved consequential product/architecture decisions to Arena.
 
 ## Issue construction
 
-Use clear direct sections. Keep sections that do not apply short rather than inventing content.
+Use clear direct sections. Keep sections that do not apply short rather than
+inventing content.
 
 ### Objective
 One concrete outcome.
@@ -38,7 +51,8 @@ One concrete outcome.
 Only context needed to execute correctly.
 
 ### Authority
-Identify any canonical product/architecture/ADR/policy sources that govern the task.
+Identify any canonical product/architecture/ADR/policy sources that govern the
+task.
 
 ### Task-specific references
 List only the exact task-specific references Arena needs after opening the
@@ -57,8 +71,10 @@ Select one primary workflow when applicable. When no reusable workflow applies,
 write None.
 
 ### Selected skills / tools
-List only capabilities deliberately approved for this task.
-If none: say none.
+List only capabilities deliberately approved for this task. For each selected
+skill, state the exact repo-relative path under `.agents/skills/`, what task
+branch triggers it, and why the primary workflow alone is insufficient. If none:
+say none. A skill's presence in the repository is not selection.
 
 ### Constraints
 Hard boundaries that must remain true.
@@ -82,7 +98,8 @@ Give a bounded surface when known.
 Prevent adjacent work from leaking into the task.
 
 ### Escalate only if
-List genuine decision boundaries, conflicts, unavailable required capability, destructive action, or new trust boundary.
+List genuine decision boundaries, conflicts, unavailable required capability,
+destructive action, or new trust boundary.
 
 ### PR / completion evidence
 State what Arena must report.
@@ -131,11 +148,18 @@ For each task, choose deliberately:
 
 - workflow, or None when no reusable workflow applies;
 - deterministic scripts/checks;
-- any other deliberately approved capability, if any.
+- only the exact adopted skill paths required by the task, or None;
+- an explanation of why each selected skill applies.
 
-A capability is not active just because it exists in the repo.
+The catalog at `.agents/skills/README.md` is the sole current capability list
+and role-routing reference. It is not a mandate to load every capability. No
+skill is selected merely because it exists; selected skills remain subordinate
+to project truth, policy, and the Issue.
 
-When a task does not need a specialized capability, do not load it.
+For the current adopted capability names, purposes, and role routing, consult
+`.agents/skills/README.md`. Select only the exact paths the task needs; no
+implementation capability is a default bundle. The primary workflow still owns
+the task, and a selected capability remains subordinate to the Issue.
 
 ## Scope test
 
@@ -146,7 +170,8 @@ Before creating the Issue, answer yes to each:
 - Does the external prompt establish root policy → Arena policy → assigned Issue?
 - Are closed decisions explicitly closed?
 - Is the primary workflow selected, or explicitly None?
-- Are specialized capabilities selected only when needed?
+- Are specialized capabilities selected only when needed, by exact path and
+  stated reason?
 - Are constraints and out-of-scope boundaries explicit?
 - Is success independently verifiable?
 - Are escalation conditions real rather than routine?
@@ -166,4 +191,7 @@ Check:
 6. unrelated changes;
 7. durable docs/ADR updates required by the task.
 
-If the PR reveals a new consequential decision, do not normalize it after the fact. Surface it to the human.
+Apply `.agents/workflows/review.md` as three independent concerns: Spec/task
+fidelity, Engineering quality, Risk/evidence. If the PR reveals a new
+consequential decision, do not normalize it after the fact. Surface it to the
+human.

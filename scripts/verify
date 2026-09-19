@@ -6,6 +6,18 @@ cd "$repo_root"
 
 ./scripts/repo-check
 
+# The selected Cloudflare security-audit capability vendors deterministic,
+# zero-dependency validators and their tests. Run the tests wherever Node is
+# available (the capability's supported runtime); a no-Node environment still
+# verifies repository structure and clearly reports the unavailable runtime.
+if command -v node >/dev/null 2>&1; then
+  node --test \
+    .agents/skills/security-audit/validate-findings.test.cjs \
+    .agents/skills/security-audit/validate-coverage-ledger.test.cjs
+else
+  printf '%s\n' "verify: Node unavailable; skipped security-audit validator tests" >&2
+fi
+
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1 &&
    git rev-parse --verify -q HEAD >/dev/null; then
   empty_tree=$(git hash-object -t tree /dev/null)
