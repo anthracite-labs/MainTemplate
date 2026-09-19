@@ -49,8 +49,8 @@ paths, and a capability's existence alone never activates it:
   `SKILL.md` apply to it in full. A path alone is a weak pointer; the Issue
   says in a clause why this capability, for this task.
 - **Policy-required**: governing policy makes a procedure universally
-  required. None currently are; `scripts/verify` is the only universally
-  required procedure and it is a script, not a skill.
+  required. No skill is universally required. `scripts/verify` is a
+  universally required repository procedure, not a skill.
 
 There is no model-invoked/user-invoked distinction and no description-based
 autonomous firing. Arena does not self-select execution capabilities that its

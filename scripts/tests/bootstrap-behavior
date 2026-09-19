@@ -123,6 +123,9 @@ while [ $# -gt 0 ]; do
     -i)
       header=1
       ;;
+    -H)
+      shift
+      ;;
     --input) shift ;;
     -q | --jq) shift ;;
     *)
@@ -177,7 +180,10 @@ case $url in
     printf 'HTTP/2 %s\n' "$st"
     ;;
   orgs/*/teams/*/repos/*)
-    printf 'HTTP/2 %s\n' "$(cat "$M/teamrepo.status" 2>/dev/null || printf 404)"
+    st=$(cat "$M/teamrepo.status" 2>/dev/null || printf 404)
+    printf 'HTTP/2 %s\n\n' "$st"
+    [ "$st" = 200 ] && [ -f "$M/teamrepos.json" ] && cat "$M/teamrepos.json"
+    exit 0
     ;;
   orgs/*/teams/*)
     st=$(cat "$M/team.status" 2>/dev/null || printf 404)
@@ -268,11 +274,22 @@ set_user() { # <login> <type>
 set_perm() { # <login> <permission>
   jq -n --arg p "$2" '{permission: $p}' >"$S/mock/perm-$1.json"
 }
+set_teamrepo_perm() { # <level: pull|triage|push|maintain|admin> — one repo object, as the
+  # media-type direct permission check returns it (cumulative booleans + role_name).
+  jq -n --arg full "$REPO_SLUG" --arg lvl "$1" '
+    {full_name: $full, role_name: (if $lvl == "push" then "write" else $lvl end),
+      permissions: {
+        pull: ($lvl == "pull" or $lvl == "triage" or $lvl == "push" or $lvl == "maintain" or $lvl == "admin"),
+        triage: ($lvl == "triage" or $lvl == "push" or $lvl == "maintain" or $lvl == "admin"),
+        push: ($lvl == "push" or $lvl == "maintain" or $lvl == "admin"),
+        maintain: ($lvl == "maintain" or $lvl == "admin"),
+        admin: ($lvl == "admin")}}' >"$S/mock/teamrepos.json"
+}
 default_fixtures() {
   set_user alice User
   set_perm alice admin
   set_user bob User
-  set_perm bob read
+  set_perm bob write
   set_user carol User
   set_user anthracite-labs User
   set_perm anthracite-labs admin
@@ -341,7 +358,8 @@ assert_empty 's2: nothing mutated on GitHub' "$S/mock/mutations.log"
 # 3: organization team override end to end (full token, check, no-op rerun).
 scenario s3 acme Organization
 printf '200\n' >"$S/mock/team.status"
-printf '204\n' >"$S/mock/teamrepo.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm push
 write_co '@anthracite-labs'
 set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
 exact_ruleset 111 >"$S/mock/ruleset-111.json"
@@ -355,26 +373,74 @@ cp "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
 expect_ok 's3: rerun apply is a no-op' run --owner acme/platform
 assert_file_eq 's3: rerun changed nothing' "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
 
-# 4: explicit user override is validated before acceptance.
-scenario s4a alice User
-set_user bob User
-set_perm bob read
-write_co '@alice'
-set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
-exact_ruleset 111 >"$S/mock/ruleset-111.json"
-expect_ok 's4a: apply with validated USER override' run --owner bob
-assert_eq 's4a: managed owner is the validated user' \
-  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/AGENTS.md')" '@bob'
-expect_ok 's4a: --check with the same assertion' run --check --owner bob
+# 3t: team eligibility — a code owner team must have write permission or
+# higher; read/pull and triage, no access, and unverifiable level are refused.
+for lvl in pull triage; do
+  scenario "s3t-$lvl" acme Organization
+  printf '200\n' >"$S/mock/team.status"
+  printf '200\n' >"$S/mock/teamrepo.status"
+  set_teamrepo_perm "$lvl"
+  write_co '@anthracite-labs'
+  expect_fail "s3t: '$lvl'-permission team is refused" run --owner acme/platform
+  assert_out "s3t: '$lvl' refusal states the write-or-higher requirement" \
+    'must have write permission or higher'
+done
 
-scenario s4b alice User
+for lvl in maintain admin; do
+  scenario "s3t-$lvl" acme Organization
+  printf '200\n' >"$S/mock/team.status"
+  printf '200\n' >"$S/mock/teamrepo.status"
+  set_teamrepo_perm "$lvl"
+  write_co '@anthracite-labs'
+  set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+  exact_ruleset 111 >"$S/mock/ruleset-111.json"
+  expect_ok "s3t: '$lvl'-permission team is accepted" run --owner acme/platform
+  assert_eq "s3t: '$lvl' team token written with full ORG/TEAM form" \
+    "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/docs/')" '@acme/platform'
+done
+
+scenario s3t-noaccess acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '404\n' >"$S/mock/teamrepo.status"
+write_co '@anthracite-labs'
+expect_fail 's3t: team without repository access is refused' run --owner acme/platform
+assert_out 's3t: no-access refusal states the write-or-higher requirement' \
+  'must have write permission or higher'
+
+scenario s3t-unverifiable acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+rm -f "$S/mock/teamrepos.json"
+write_co '@anthracite-labs'
+expect_fail 's3t: visible team with unverifiable permission level is refused' run --owner acme/platform
+assert_out 's3t: unverifiable refusal explains the missing verification' \
+  'cannot verify the repository permission'
+
+# 4: explicit user override eligibility — a code owner user must have write
+# permission or higher; read, triage, none, and unverifiable are refused.
+scenario s4r alice User
 set_user bob User
-set_perm bob none
 write_co '@alice'
 set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
 exact_ruleset 111 >"$S/mock/ruleset-111.json"
-expect_fail 's4b: USER override without repository access is refused' run --owner bob
-assert_out 's4b: refusal names the missing access' 'no access to owner/repo-under-test'
+for lvl in read triage none; do
+  set_perm bob "$lvl"
+  expect_fail "s4r: USER override with '$lvl' permission is refused" run --owner bob
+  assert_out "s4r: '$lvl' refusal states the write-or-higher requirement" \
+    'must have write permission or higher'
+done
+
+for lvl in write maintain admin; do
+  scenario "s4w-$lvl" alice User
+  set_user bob User
+  set_perm bob "$lvl"
+  write_co '@alice'
+  set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+  exact_ruleset 111 >"$S/mock/ruleset-111.json"
+  expect_ok "s4w: USER override with '$lvl' permission is accepted" run --owner bob
+  assert_eq "s4w: '$lvl' owner written to managed rules" \
+    "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/AGENTS.md')" '@bob'
+done
 
 scenario s4c alice User
 set_user carol User
@@ -382,7 +448,7 @@ write_co '@alice'
 set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
 exact_ruleset 111 >"$S/mock/ruleset-111.json"
 expect_fail 's4c: unverifiable USER override is refused, not accepted' run --owner carol
-assert_out 's4c: refusal explains verification failure' 'cannot verify repository access for user'
+assert_out 's4c: refusal explains verification failure' 'must have write permission or higher'
 
 # 5: malformed overrides are rejected before anything happens.
 scenario s5 alice User
