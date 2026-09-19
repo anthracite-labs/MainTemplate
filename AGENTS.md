@@ -1,10 +1,8 @@
-# AGENTS.md — Repository Constitution
+# AGENTS.md — Repository constitution
 
-This file is the root operating map for this repository: a constitution plus a
-map, not a handbook. Load deeper instructions only when a task requires them.
-
-The current accepted operating architecture is
-`docs/architecture/agent-operating-stack.md`.
+Root operating map: constitution plus routing, not a handbook. Load deeper
+files only when the task needs them. Rationale lives in
+`.agents/OPERATING-MODEL.md`.
 
 ## Operating model
 
@@ -14,165 +12,127 @@ The current accepted operating architecture is
   priorities, and final judgment.
 - ChatGPT guides: research, comparison, challenge, capability selection,
   Arena task compilation, and review.
-- Arena executes bounded work defined by its assigned GitHub Issue and returns
-  verified evidence in a pull request.
+- Arena executes the bounded GitHub Issue and returns verified PR evidence.
 - GitHub / repository is the durable system of record.
 
-ChatGPT and Arena are replaceable. Repository truth is continuous.
+Agents are replaceable. Repository truth is continuous.
 
-## Source of truth
+## Truth
 
-- Durable project truth belongs in GitHub/repository.
-- AI conversations, model memory, session state, sandboxes, external indexes,
-  vector stores, and proprietary memory services are not canonical.
-- Any durable decision future work depends on must be encoded in the repository
-  or a GitHub Issue before execution relies on it.
-- Do not maintain multiple canonical copies of the same mutable fact.
+Durable project truth belongs in GitHub/repository. Conversations, model
+memory, session state, sandboxes, external indexes, and proprietary memory
+services are not canonical.
 
-## Authority domains and conflict rules
+Record any durable decision future work depends on in the repository or a
+GitHub Issue before execution relies on it. One mutable fact, one owner.
 
-Authority is not one flat ladder.
+## Authority
 
-- Project truth: human-approved requirements, accepted ADRs, canonical
-  architecture, and other accepted project docs define what is true/decided.
-- Agent operating policy: this file and role-specific AGENTS.md files define how
-  agents are allowed to operate.
-- Task contract: the assigned GitHub Issue defines what Arena must do now,
-  within project truth and operating policy.
-- Task procedure/capability: selected workflows, skills, and tools define how
-  the bounded task is carried out.
-- Evidence/reference: code/tests/config, research, and agent inference verify or
-  inform work; they do not silently override higher-authority truth or policy.
+| Domain | Answers | Held by |
+|---|---|---|
+| Project truth | What is true or decided? | Accepted requirements, ADRs, canonical docs |
+| Policy | How may agents operate? | This file and role `AGENTS.md` files |
+| Task | What must Arena do now? | Assigned GitHub Issue |
+| Procedure | How is the work carried out? | Selected workflows and vendored capabilities |
+| Evidence | What verifies or informs? | Code, tests, config, research |
 
-Conflict rules:
+- An Issue does not override project truth or policy merely by contradicting it.
+- Intentional changes to truth, architecture, or policy must name the
+  human-approved change and update the owning file.
+- Consequential architecture requires explicit human approval and durable
+  recording.
+- Same-domain conflicts are surfaced, not guessed through.
+- Procedures never override truth, policy, or the task.
 
-- An Issue does not override accepted project truth or operating policy merely
-  by contradicting it.
-- Intentional changes to product truth, architecture, or operating policy must
-  identify the human-approved change and update the canonical source.
-- Consequential architecture changes require explicit human approval and
-  durable recording.
-- Conflicts within the same authority domain must be surfaced, not guessed
-  through.
-- Workflow/skill/tool instructions never override project truth, operating
-  policy, or the task contract.
+## Map
 
-## Repository map
+### Operating layer
 
-### Agent operating layer
+- `.agents/chatgpt/AGENTS.md` — ChatGPT with the human.
+- `.agents/chatgpt/ARENA-DISPATCH.md` — Arena Issue and prompt compiler.
+- `.agents/arena/AGENTS.md` — Arena execution.
+- `.agents/CAPABILITIES.md` — catalog and routing.
+- `.agents/vendor/` — immutable upstream procedures; `.agents/vendor/UPSTREAM.lock`
+  is the inventory authority.
+- `.agents/PROVENANCE.md` — why those procedures were adopted.
+- `.agents/RESEARCH.md` — research and evidence standard.
+- `.agents/workflows/` — local procedures upstream does not own.
+- `.agents/OPERATING-MODEL.md` — rationale, not a second policy.
 
-- `.agents/RESEARCH.md` — shared canonical research/evidence standard.
-- `.agents/chatgpt/AGENTS.md` — ChatGPT's role with the human.
-- `.agents/chatgpt/ARENA-DISPATCH.md` — Arena Issue/prompt compiler.
-- `.agents/arena/AGENTS.md` — Arena execution contract.
-- `.agents/workflows/` — reusable task procedures: research, plan, implement,
-  debug, review, security, recover. `debug.md` and `review.md` are each their
-  one canonical procedure; no duplicate skill owns either.
-- `.agents/skills/README.md` — canonical catalog and role routing for adopted,
-  optional specialized capabilities; `PROVENANCE.md` records their third-party
-  sources/licenses/adaptations.
+### Project truth
 
-### Durable project truth
+- `docs/` — project documentation. `docs/agents/` is tracker configuration
+  for vendored skills, not product architecture.
+- Issues, PRs, branches, and Git history — task, evidence, and result.
 
-- `docs/architecture/agent-operating-stack.md` — the current accepted
-  operating-stack architecture.
-- `docs/` — other project truth/supporting evidence; create real subdirectories
-  only when real content requires them.
-- Issues/PRs/branches/Git history — task state, execution history, review
-  evidence.
+### Deterministic layer
 
-### Deterministic/enforcement layer
-
-- `.gitattributes` — path-aware Git content/whitespace policy used by verification.
-- `scripts/verify` — stable verification entry point.
-- `scripts/repo-check` — repository operating-invariant checks.
-- `.github/ISSUE_TEMPLATE/arena-task.md` — standard Arena task contract.
-- `.github/PULL_REQUEST_TEMPLATE.md` — evidence-oriented PR template.
-- `.github/CODEOWNERS` — ownership of sensitive operating surfaces.
-- `.github/workflows/verify.yml` — repository verification in CI.
+- `scripts/verify` — source-tree health.
+- `scripts/repo-check` — operating invariants, including vendor integrity.
+- `scripts/bootstrap-repository` — GitHub settings. `--check` is GitHub
+  health, not source health.
+- `.github/ISSUE_TEMPLATE/arena-task.md` — Arena task contract.
+- `.github/PULL_REQUEST_TEMPLATE.md` — execution evidence.
+- `.github/CODEOWNERS` — advisory ownership and review routing.
+- `.github/workflows/verify.yml` — CI entry for `scripts/verify`.
 
 ## Role routing
 
-- ChatGPT project bootstrap: external project instructions should only point to
-  `/AGENTS.md` and then `/.agents/chatgpt/AGENTS.md`.
-- Arena bootstrap: use the canonical execution prompt defined in
-  `.agents/chatgpt/ARENA-DISPATCH.md`. It loads standing operating policy before
-  the assigned Issue; the Issue contains only task-specific
-  references/workflow/capabilities.
+- ChatGPT boot: `/AGENTS.md`, then `/.agents/chatgpt/AGENTS.md`.
+- Arena boot: the prompt in `.agents/chatgpt/ARENA-DISPATCH.md`. It loads
+  root policy, then Arena policy, then the assigned Issue.
 
-External bootstrap instructions are navigation pointers, not duplicated policy.
+External bootstrap instructions are pointers, not duplicated policy.
 
 ## Progressive disclosure
 
-Agents must:
+Begin with assigned sources. Load deeper files only when relevant. Do not
+copy procedures into root. Do not load unused capabilities.
 
-- begin with explicitly assigned sources;
-- load deeper references only when relevant;
-- avoid reading the whole repository by default;
-- avoid copying deeper procedures into root instructions;
-- avoid loading unused skills/tools.
-
-After boot policy is loaded, the assigned Issue tells Arena which task-specific
-references/workflow/capabilities are active and what result/evidence is expected.
-
-## Verification principle
+## Verification
 
 > Prefer deterministic verification over trusting prose or agent claims wherever practical.
 
-For repository changes, run `scripts/verify` unless the Issue explicitly defines
-a stronger/specialized verification path. PRs must map evidence to acceptance
-criteria.
+Run `scripts/verify` unless the Issue names a stronger path. PRs map evidence
+to acceptance. Source verification does not prove GitHub ruleset state.
 
 ## Escalation
 
-Stop and surface rather than invent resolution for:
+Stop and surface:
 
-- conflicting authoritative truth;
-- missing product intent;
-- consequential architecture not already decided;
-- new security/trust boundaries;
-- destructive or irreversible decisions;
-- a required capability that cannot operate.
+- conflicting authoritative truth
+- missing product intent
+- undecided consequential architecture
+- new security or trust boundaries
+- destructive or irreversible decisions
+- a required capability that cannot operate
 
-Routine reversible implementation details should be resolved autonomously.
+Routine reversible implementation is resolved autonomously.
 
-## Capability rule
+## Capability
 
-Activation has exactly three paths; this section owns the general rule and
-`.agents/skills/README.md` owns the detailed catalog: names, purposes, and
-role routing.
+Activation has exactly three paths. `.agents/CAPABILITIES.md` owns names,
+paths, triggers, and actors.
 
-- **Planning selection** — before an Arena execution Issue exists, Human +
-  ChatGPT may deliberately select a planning/guidance capability from the
-  catalog to think, decide, map, specify, or compile work. Selection is
-  deliberate and uses the minimum capability needed, at its exact
-  repo-relative path. The capability remains subordinate to root and ChatGPT
-  policy; it may produce durable decisions, specs, maps, or Arena Issues. No
-  Issue is required for this path.
-- **Execution selection** — Arena execution capabilities are active only when
-  the assigned bounded Issue names the exact repo-relative path and why the
-  capability applies. Arena never self-activates a capability because it
-  exists.
-- **Policy-required procedure** — governing policy may make a procedure
-  universally required. `scripts/verify` is the current example; it is a
-  repository script, not a skill.
+1. **Planning selection** — Human + ChatGPT deliberately select a planning
+   capability. No Issue is required.
+2. **Execution selection** — the assigned Issue names the exact repo-relative
+   path and why it applies. Arena never self-activates a capability.
+3. **Policy-required procedure** — governing policy may require a procedure.
+   `scripts/verify` is the current example; it is a script, not a skill.
 
-A capability's mere existence never activates it, and no capability may
-override root policy, role policy, accepted project truth, or the Issue.
-Role files point to these rules and the catalog; they never invent competing
-activation systems.
+Existence never activates. No capability overrides root policy, role policy,
+project truth, or the Issue.
 
-Adding/removing a capability requires a deliberate human + ChatGPT decision,
-actual adopted content (never placeholders), an update to the catalog and
-provenance record, and deterministic repository checks. Do not independently
-adopt frameworks, dependencies, memory systems, review systems, or security
-tools merely because they exist.
+Vendored upstream content is authoritative for its procedure and is never
+edited locally. Integration changes belong in our files. Upstream changes
+require a deliberate pin bump recorded in `.agents/vendor/UPSTREAM.lock`.
 
-## State/memory
+Adding or removing a capability is a human + ChatGPT decision with catalog,
+provenance, lock, and check updates. Do not independently adopt frameworks,
+memory systems, or tools merely because they exist.
 
-This repository has no dedicated canonical `state.json` or `CURRENT.md`.
+## State
 
-Recover operational state from Issues, PRs, branches, Git history, accepted
-docs/ADRs, and current implementation evidence. Add dedicated state machinery
-only if measured usage demonstrates a real recovery failure that Git/GitHub
-cannot solve cleanly.
+No `state.json` or `CURRENT.md`. Recover from Issues, PRs, branches, Git
+history, accepted docs/ADRs, and implementation evidence.

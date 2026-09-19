@@ -1,0 +1,73 @@
+# UPSTREAM.lock — canonical vendored-file inventory
+# Parsed with awk/cut. Do not require jq to validate.
+#
+# SOURCE <repository> <pinned-commit>
+# FILE <repository> <pinned-commit> <mode> <blob> <upstream-path> <local-path>
+#
+# Paths contain no spaces. blob is the Git blob object ID.
+# mode is 100644 or 100755. This file is the one machine authority
+# for the vendored inventory. Do not duplicate the list elsewhere.
+#
+# Update policy: bump a pinned commit only as a deliberate review
+# operation; replace the vendored bytes and regenerate this lock.
+SOURCE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7
+SOURCE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 f1dd2c09108dde1a5f56097cee8461b3ea834499 LICENSE .agents/vendor/mattpocock/LICENSE
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 e28d7acbf7b3bb4d7817b7eb5d9c105af03f6ec4 skills/engineering/code-review/SKILL.md .agents/vendor/mattpocock/skills/engineering/code-review/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 9076774ba327f49068db9273feceda03bfe940fa skills/engineering/code-review/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/code-review/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 cd94075cfd754d147555c5d747a16431ed4c7dd8 skills/engineering/codebase-design/DEEPENING.md .agents/vendor/mattpocock/skills/engineering/codebase-design/DEEPENING.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 7edc861a31b1b219b933af18079f66b564c5de67 skills/engineering/codebase-design/DESIGN-IT-TWICE.md .agents/vendor/mattpocock/skills/engineering/codebase-design/DESIGN-IT-TWICE.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 3f63c8146dd2604b419c929e9876b90c30d410e9 skills/engineering/codebase-design/SKILL.md .agents/vendor/mattpocock/skills/engineering/codebase-design/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 3180715edb37f6e96bec42f92f00169faa8886ef skills/engineering/codebase-design/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/codebase-design/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 061c25a524acaa93d4534e9e08a793c0a5fe45fd skills/engineering/diagnosing-bugs/SKILL.md .agents/vendor/mattpocock/skills/engineering/diagnosing-bugs/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 a13a755a77634ce61a649a3a0d905a66d3865b35 skills/engineering/diagnosing-bugs/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/diagnosing-bugs/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 243198464a8401a7ba1d63b3708fa43c3d067665 skills/engineering/diagnosing-bugs/scripts/hitl-loop.template.sh .agents/vendor/mattpocock/skills/engineering/diagnosing-bugs/scripts/hitl-loop.template.sh
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 d7e61f30a9fd8ca70d9ee68f019c2a9ebf2d13f7 skills/engineering/domain-modeling/ADR-FORMAT.md .agents/vendor/mattpocock/skills/engineering/domain-modeling/ADR-FORMAT.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 79bbb32f6fda55758b377c980f72a6cb2b8c670e skills/engineering/domain-modeling/CONTEXT-FORMAT.md .agents/vendor/mattpocock/skills/engineering/domain-modeling/CONTEXT-FORMAT.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 9b97707e19ef1f590aada356f2b3f6bb881f91be skills/engineering/domain-modeling/SKILL.md .agents/vendor/mattpocock/skills/engineering/domain-modeling/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 7f1522d2f11506ee205275ab7c282aa52366ecf6 skills/engineering/domain-modeling/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/domain-modeling/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 e39e8255b8797cf8257d014fb6658fb533f3a399 skills/engineering/improve-codebase-architecture/HTML-REPORT.md .agents/vendor/mattpocock/skills/engineering/improve-codebase-architecture/HTML-REPORT.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 a578dd0a34ad0a8886abe7e7642b100106ba86d6 skills/engineering/improve-codebase-architecture/SKILL.md .agents/vendor/mattpocock/skills/engineering/improve-codebase-architecture/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 706fdca096da5937fe57875a9154017d50668c42 skills/engineering/improve-codebase-architecture/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/improve-codebase-architecture/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 32be86a0a5d9928db84b3988e55f9debe476ab40 skills/engineering/prototype/LOGIC.md .agents/vendor/mattpocock/skills/engineering/prototype/LOGIC.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 a0044501fe0d385b4d8575b610188ede9b236ccf skills/engineering/prototype/SKILL.md .agents/vendor/mattpocock/skills/engineering/prototype/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 3977951663490882c2632b40695d9f59a2fe2408 skills/engineering/prototype/UI.md .agents/vendor/mattpocock/skills/engineering/prototype/UI.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 1618b147965bc729b7bf3e8da5f130132067aadc skills/engineering/prototype/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/prototype/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 bfb7e5606e231e6808979f623fce76a9aad4b71c skills/engineering/resolving-merge-conflicts/SKILL.md .agents/vendor/mattpocock/skills/engineering/resolving-merge-conflicts/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 331ffb9d38937877f51a5f867a66dc61eee259ae skills/engineering/resolving-merge-conflicts/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/resolving-merge-conflicts/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 8fc086710806190ee7c4baa32089cb877a75736a skills/engineering/tdd/SKILL.md .agents/vendor/mattpocock/skills/engineering/tdd/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 651b838a7663e027b1b8884491e867f26bb9a021 skills/engineering/tdd/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/tdd/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 71cbfee674d93244ce81d1830b930ca9a69200bd skills/engineering/tdd/mocking.md .agents/vendor/mattpocock/skills/engineering/tdd/mocking.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 7ab86479f925a1f9e8ba680af33cb3b12e015381 skills/engineering/tdd/tests.md .agents/vendor/mattpocock/skills/engineering/tdd/tests.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 3f52599ae2a4347aee5a07432c2707518e691a7f skills/engineering/to-spec/SKILL.md .agents/vendor/mattpocock/skills/engineering/to-spec/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 549e6f76f020a1b9ba65f52ccda336566ee6222a skills/engineering/to-spec/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/to-spec/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 e868c831fcfb1e124e010bcdf84a429ec879160f skills/engineering/to-tickets/SKILL.md .agents/vendor/mattpocock/skills/engineering/to-tickets/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 24605a5db64e4fc750b999aa94aea126bee814ee skills/engineering/to-tickets/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/to-tickets/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 812805b760baf328db0ebdef6f3807e381f97016 skills/engineering/wayfinder/SKILL.md .agents/vendor/mattpocock/skills/engineering/wayfinder/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 b37544751e0570f9df8de6c02aef238de8c3e1e0 skills/engineering/wayfinder/agents/openai.yaml .agents/vendor/mattpocock/skills/engineering/wayfinder/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 8ca78c6d8f901aab0c5a1f896034b70e666ff2a3 skills/productivity/grilling/SKILL.md .agents/vendor/mattpocock/skills/productivity/grilling/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 ddbdb96139c0c1dfe6bca698f39d0465674b8a39 skills/productivity/grilling/agents/openai.yaml .agents/vendor/mattpocock/skills/productivity/grilling/agents/openai.yaml
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 9cdbdb22aadc438755392216e75ad9a14cc9832e skills/productivity/writing-for-agents/SKILL-MECHANICS.md .agents/vendor/mattpocock/skills/productivity/writing-for-agents/SKILL-MECHANICS.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 a37608daf6e835e767deecfb498facecaaba82ba skills/productivity/writing-for-agents/SKILL.md .agents/vendor/mattpocock/skills/productivity/writing-for-agents/SKILL.md
+FILE mattpocock/skills c55ee46073ed923f86ce59a5eb3b6d895095d1b7 100644 079c933b75743dec18b5d0c01006def20b6aad26 skills/productivity/writing-for-agents/agents/openai.yaml .agents/vendor/mattpocock/skills/productivity/writing-for-agents/agents/openai.yaml
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 6dbc9ecb3a5b9080e95b962869e8c7ab16cfdc20 LICENSE .agents/vendor/cloudflare/LICENSE
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 02ba9039eca4cec811fefc77bce0d7349b379aae skills/security-audit/AI-AND-LLM.md .agents/vendor/cloudflare/skills/security-audit/AI-AND-LLM.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 18a2beb4dbb554fb52b0a0293b8bd9108207f8fa skills/security-audit/ATTACK-CLASSES.md .agents/vendor/cloudflare/skills/security-audit/ATTACK-CLASSES.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 8ba673e9e7e3d02f5518aa0219bcbeec7957531b skills/security-audit/CLIENT-SIDE.md .agents/vendor/cloudflare/skills/security-audit/CLIENT-SIDE.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 5569f76c7740744aa3f60aaa89eaefe275f2e6c9 skills/security-audit/CLOUD-AND-DEPLOYMENT.md .agents/vendor/cloudflare/skills/security-audit/CLOUD-AND-DEPLOYMENT.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 0cba1fa463b62c9b0caba710a201e29c1eecd0ec skills/security-audit/DATA-ISOLATION-AND-LIFECYCLE.md .agents/vendor/cloudflare/skills/security-audit/DATA-ISOLATION-AND-LIFECYCLE.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 d6230098651bff6348d3868c11f566bfb1306e7f skills/security-audit/DESKTOP-MOBILE-AND-LOCAL-IPC.md .agents/vendor/cloudflare/skills/security-audit/DESKTOP-MOBILE-AND-LOCAL-IPC.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 377d4dcfbe88a049379448cd7892717185401597 skills/security-audit/HUNTING.md .agents/vendor/cloudflare/skills/security-audit/HUNTING.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 86ff4920752661fc4a31a35ca4f962ace5dd5f48 skills/security-audit/MEMORY-SAFETY-AND-BINARY.md .agents/vendor/cloudflare/skills/security-audit/MEMORY-SAFETY-AND-BINARY.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 b04ab88f852224838fdc9683d9fcccd858b0778a skills/security-audit/PROTOCOLS-RPC-AND-MESSAGING.md .agents/vendor/cloudflare/skills/security-audit/PROTOCOLS-RPC-AND-MESSAGING.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 1a170a93ab76b93dc5ac268a5b690beb423a8aa9 skills/security-audit/RECONNAISSANCE.md .agents/vendor/cloudflare/skills/security-audit/RECONNAISSANCE.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 6cbbd1e2cfa482068c8279c2f7da9db43d3f54b8 skills/security-audit/RESOURCE-EXHAUSTION-AND-AVAILABILITY.md .agents/vendor/cloudflare/skills/security-audit/RESOURCE-EXHAUSTION-AND-AVAILABILITY.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 92178dad304d3f63e37582a297026a7874e12c62 skills/security-audit/SKILL.md .agents/vendor/cloudflare/skills/security-audit/SKILL.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 bf96aed0803bc07471483ab129dea86759c3e305 skills/security-audit/SUPPLY-CHAIN-AND-RELEASE.md .agents/vendor/cloudflare/skills/security-audit/SUPPLY-CHAIN-AND-RELEASE.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 5e200d7387e665e53e0e4190fa4a5814c334c507 skills/security-audit/VALIDATION-AND-REPORTING.md .agents/vendor/cloudflare/skills/security-audit/VALIDATION-AND-REPORTING.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 1a099fa575cf52a61e9a627f91b61015120fa517 skills/security-audit/WEB-PROTOCOL-AND-AUTH.md .agents/vendor/cloudflare/skills/security-audit/WEB-PROTOCOL-AND-AUTH.md
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 55815a3687a45fff63d8ebf20068611bd6ad6d9a skills/security-audit/report-schema.json .agents/vendor/cloudflare/skills/security-audit/report-schema.json
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100755 0ef58657bef18b26a92321df6c8e3d31bc8e6659 skills/security-audit/validate-coverage-ledger.cjs .agents/vendor/cloudflare/skills/security-audit/validate-coverage-ledger.cjs
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 b1444f57e1b021a61175733b8c356171861c8701 skills/security-audit/validate-coverage-ledger.test.cjs .agents/vendor/cloudflare/skills/security-audit/validate-coverage-ledger.test.cjs
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100755 2843feceddb7e30bf10d6e4f7bbe6640e4c57799 skills/security-audit/validate-findings.cjs .agents/vendor/cloudflare/skills/security-audit/validate-findings.cjs
+FILE cloudflare/security-audit-skill c1c8a8c1471069fb0e188eeaff69b8e8db6564a8 100644 8d245b226bbe2fdf28b46b3203b99c2824039d2d skills/security-audit/validate-findings.test.cjs .agents/vendor/cloudflare/skills/security-audit/validate-findings.test.cjs

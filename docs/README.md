@@ -1,23 +1,16 @@
-# Project Documentation
+# Project documentation
 
-docs/ stores durable project truth and durable supporting evidence.
+`docs/` stores durable project truth and supporting evidence.
 
-Create subdirectories/files only when real project content requires them. Do
-not pre-populate empty documentation trees.
+Create subdirectories only when real project content requires them.
 
-## Current structure
-
-- `architecture/agent-operating-stack.md` — the current accepted operating-
-  stack architecture.
+`docs/agents/` is agent-configuration for vendored skills (GitHub as the
+issue tracker). It is not product architecture.
 
 ## Truth discipline
 
 - One canonical representation per mutable fact.
-- Derived summaries should be generated where practical, not independently edited.
-- GitHub Issues/PRs/Git history record execution state/history.
-- Code/tests/config are implementation evidence, not a substitute for explicit
-  product/architecture decisions when those decisions matter.
+- GitHub Issues/PRs/Git history record execution state.
+- Code/tests/config are implementation evidence, not a substitute for
+  explicit product or architecture decisions.
 - Chat/model memory is never canonical.
-
-Use ADRs for consequential decisions whose rationale and supersession path must
-survive individual tasks.

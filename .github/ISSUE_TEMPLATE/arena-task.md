@@ -10,97 +10,53 @@ assignees: ""
 
 <!-- One concrete outcome. -->
 
-# Why / context
-
-<!-- Only context required to execute correctly. -->
-
-# Authority
-
-<!-- Canonical product/architecture/ADR/policy sources governing this task. -->
-
-# Task-specific references
+# Context & authority
 
 <!--
-List only exact task-specific canonical references, in the order Arena should
-read them after opening this Issue. Do not repeat /AGENTS.md or
-/.agents/arena/AGENTS.md; the external execution prompt loads those first.
-If none, write None.
+Why this task exists, and the canonical product/architecture/ADR/policy
+sources that govern it. Standing root and Arena policy are already loaded
+by the external prompt — do not repeat them.
 -->
 
-# Decisions already made
+# Decisions
 
 <!-- Closed decisions Arena must not reopen. -->
 
-# Required workflow
-
-<!-- Select one reusable workflow when applicable. If none applies, write None. -->
-
-.agents/workflows/<workflow>.md | None
-
-# Selected skills / tools
+# Execution
 
 <!--
-List deliberately selected capabilities only. A capability is not active because
-it exists in .agents/skills/. For each selected skill: exact repo-relative path,
-task branch it governs, and why the primary workflow is insufficient. If none,
-write None.
+Exact repo-relative procedure paths, in load order, and why each applies.
+Point at vendored skills when selected, for example:
 
-Example:
-- `.agents/skills/tdd/SKILL.md` — red→green changes for <behavior>; public seam
-  is already decided by <Issue/spec>.
+`.agents/vendor/mattpocock/skills/engineering/tdd/SKILL.md`
+
+If none, write none.
 -->
 
-None
+none
 
-# Constraints
+# Boundaries
 
-<!-- Hard boundaries that must remain true. -->
+<!-- Hard constraints, out of scope, and likely failure modes. -->
 
-# Do not
-
-<!-- Likely scope-expansion or failure modes. -->
-
-# Acceptance criteria
+# Acceptance
 
 - [ ]
 
-# Verification required
+# Verification
 
 <!--
-Task-specific checks only. Standing verification behavior (scripts/verify,
-complete-diff inspection, acceptance-criteria mapping) is owned by
-/.agents/arena/AGENTS.md and always applies. If standing verification is
-sufficient, write None.
+Task-specific checks only. Standing verification is owned by
+/.agents/arena/AGENTS.md. If standing verification is sufficient, write none.
 -->
 
-None
+none
 
-# Expected result
-
-<!-- Describe final state, not a narration of steps. -->
-
-# Expected changed areas
-
-<!-- Bounded paths/components when known. -->
-
-# Out of scope
-
-<!-- Adjacent work that must not leak into this task. -->
-
-# Escalate only if
+# Escalate
 
 <!--
-Task-specific escalation conditions only. Standing escalation rules are owned
-by /.agents/arena/AGENTS.md and always apply. If there are no task-specific
-ones, write None.
+Task-specific escalation only. Standing escalation is owned by
+/.agents/arena/AGENTS.md. If none, write none.
 -->
 
-None
-
-# PR / completion evidence
-
-<!--
-Evidence beyond the standard PR template requirements. If none, write None.
--->
-
-None
+none

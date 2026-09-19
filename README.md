@@ -1,99 +1,51 @@
-# Repository Operating Model
+# Repository operating model
 
-A repository-native operating template for a human owner, ChatGPT as technical
-guide, Arena as execution operator, and GitHub as the durable project record.
+A repository-native engineering harness.
 
 > Human thinks. ChatGPT guides. Arena executes. GitHub remembers.
 
 ## Start here
 
-- `AGENTS.md` — repository constitution, authority model, map, and routing.
-- `.agents/chatgpt/AGENTS.md` — how ChatGPT works with the human.
-- `.agents/arena/AGENTS.md` — how Arena executes assigned work.
-- `.agents/skills/README.md` — the sole detailed catalog of adopted
-  capabilities: names, purposes, role routing, and activation.
-- `docs/architecture/agent-operating-stack.md` — the current accepted
-  operating-stack architecture.
+- `AGENTS.md` — constitution, authority, routing.
+- `.agents/chatgpt/AGENTS.md` — ChatGPT with the human.
+- `.agents/arena/AGENTS.md` — Arena execution.
+- `.agents/CAPABILITIES.md` — adopted procedures and actors.
+- `.agents/OPERATING-MODEL.md` — rationale.
 
 ## Operating loop
 
 1. Human + ChatGPT think, research, and decide.
-2. Work needing planning depth uses deliberately selected planning
-   capabilities before any Arena Issue exists: consult
-   `.agents/skills/README.md` and select the minimum capability whose
-   documented trigger matches.
-3. Durable decisions are encoded in GitHub/repo.
-4. ChatGPT creates a bounded GitHub Issue for Arena.
-5. ChatGPT dispatches Arena with the canonical prompt in
-   `.agents/chatgpt/ARENA-DISPATCH.md`.
-6. The Issue selects only the task-specific references/workflow/capabilities
-   required for that task.
-7. Arena executes, runs verification, and opens/updates a PR with evidence.
-8. Human + ChatGPT review the actual diff and evidence across Spec/task
-   fidelity, Engineering quality, and Risk/evidence.
-9. Merge updates the durable project record.
-
-External ChatGPT project instructions should only point to repo-owned ChatGPT
-instructions. External Arena prompts should stay short and use the canonical
-prompt defined in `.agents/chatgpt/ARENA-DISPATCH.md`.
-
-## Capability activation
-
-Root `AGENTS.md` owns the activation rule; exactly three paths activate a
-capability, and existence alone never does:
-
-- **Planning selection** — before any Arena Issue exists, Human + ChatGPT
-  deliberately select a planning/guidance capability from the catalog.
-- **Execution selection** — the assigned Issue names the exact repo-relative
-  capability path and why it applies.
-- **Policy-required procedure** — governing policy makes a procedure
-  universally required (`scripts/verify` is the current example; it is a
-  script, not a skill).
+2. Planning depth uses a deliberately selected catalog capability.
+3. Durable decisions are recorded in GitHub/repo.
+4. ChatGPT creates a bounded GitHub Issue and dispatches Arena with the
+   prompt in `.agents/chatgpt/ARENA-DISPATCH.md`.
+5. Arena executes, verifies, and opens a PR with evidence.
+6. Human + ChatGPT review the actual diff.
+7. Merge updates the durable record.
 
 ## Bootstrap a generated repository
 
-After creating a repository from this template, run once, deliberately:
+After creating a repository from this template, run once:
 
-    scripts/bootstrap-repository --check    # inspect; changes nothing
-    scripts/bootstrap-repository            # apply
+    scripts/bootstrap-repository --check
+    scripts/bootstrap-repository
 
-It manages exactly two things. First, the owner token on the six managed rules
-in `.github/CODEOWNERS`: the default owner is the repository owner when GitHub
-reports it as a user; organization-owned repositories must pass an explicit
-`--owner USER` or `--owner ORG/TEAM` (a bare organization name cannot own
-code). Eligibility is precise: a code owner user must have write permission
-or higher on the repository (write, maintain, or admin) — read and triage are
-refused — and a team must hold write permission or higher on it too,
-established from the team's actual repository permission booleans rather
-than mere access or the role's name, so custom repository roles qualify by
-what they can do; unverifiable permission is refused, never guessed. Custom rules
-and comments are preserved. Second, this repository's own `Protect main` ruleset:
-deletion and non-fast-forward blocked, a pull request required with
-review-thread resolution, the `verify` status check required, and
-merge/squash/rebase allowed, with no bypass actors. An existing
-repository-owned ruleset of that name is converged, never duplicated;
-inherited organization/enterprise rulesets are outside its authority. A
-best-effort note reports those that explicitly include `refs/heads/main`. Ruleset writes require permission
-to edit repository rules. The script completes discovery and prepares any local
-CODEOWNERS candidate first; when a ruleset write is required, it performs that
-GitHub write before installing the local candidate, so a permission denial
-leaves the working tree unchanged. If the ruleset already matches, no
-ruleset-write permission is demanded; `--check` is read-only.
-There is no bootstrap state file — the managed rules in CODEOWNERS plus
-explicit arguments are the durable inputs, and `--check` reads actual GitHub
+This configures advisory CODEOWNERS ownership and this repository's
+`Protect main` ruleset. Run `scripts/bootstrap-repository --help` for
+ownership rules and permissions.
+
+Once `Protect main` is active, commit any local CODEOWNERS change on a
+branch and open a pull request; do not push it to `main`. Then rerun
+`--check`.
+
+`scripts/verify` is source-tree health. It does not prove GitHub ruleset
 state. `scripts/verify` fails on unbootstrapped source-template owner
-residue; that is deliberate.
+residue until bootstrap runs.
 
 ## Design principles
 
-- repo truth over conversational memory;
-- progressive disclosure over giant prompts;
-- deterministic verification over self-asserted completion;
-- task-specific capability selection over always-on tool stacks;
-- smallest coherent mechanism first;
-- no external memory or framework owns canonical project truth;
-- root policy governs; specialized skills execute beneath it.
-
-The governed optional capability surface is `.agents/skills/`. Provenance,
-exact source SHAs, MIT notices, adaptations, and deliberately excluded
-upstream skills are recorded in `.agents/skills/PROVENANCE.md`.
+- repo truth over conversational memory
+- progressive disclosure over giant prompts
+- deterministic verification over self-asserted completion
+- selected capabilities over always-on stacks
+- change our layer; never patch vendored upstream
