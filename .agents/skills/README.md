@@ -28,8 +28,8 @@ mere existence never does.
   why they apply. Arena does not select capabilities for itself merely because
   they exist.
 - **Policy-required procedure**: governing policy may make a procedure
-  universally required. None currently are; `scripts/verify` is the one
-  universally required procedure and it is a repository script, not a skill.
+  universally required. No skill is universally required. `scripts/verify` is
+  a universally required repository procedure, not a skill.
 
 Do not load capabilities "because they are there". Read a selected
 capability's `SKILL.md` first; load its support files only when its procedure

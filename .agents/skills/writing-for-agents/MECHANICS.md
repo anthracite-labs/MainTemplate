@@ -53,8 +53,10 @@ paths, and a capability's existence alone never activates it:
   required procedure and it is a script, not a skill.
 
 There is no model-invoked/user-invoked distinction and no description-based
-autonomous firing. An agent never self-selects a capability that the Issue did
-not select; "a capability existing in the repository does not make it active"
+autonomous firing. Arena does not self-select execution capabilities that its
+Issue did not select; Human + ChatGPT may deliberately select planning
+capabilities before an Arena Issue exists, under root policy. "A capability
+existing in the repository does not make it active"
 (`/.agents/arena/AGENTS.md`). The cost trade from the two loads still holds:
 the catalog row in [../README.md](../README.md) is the always-available index
 (context load for whoever reads the catalog), and the human + ChatGPT remain

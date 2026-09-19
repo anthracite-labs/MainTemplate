@@ -6,6 +6,11 @@ cd "$repo_root"
 
 ./scripts/repo-check
 
+# Bootstrap behavior tests: deterministic, offline — the real bootstrap runs
+# against fixture repositories behind a mocked gh boundary, so ordering,
+# idempotence, and refusal behavior are verified without touching GitHub.
+./scripts/tests/bootstrap-behavior
+
 # The selected Cloudflare security-audit capability vendors deterministic,
 # zero-dependency validators and their tests. Run the tests wherever Node is
 # available (the capability's supported runtime); a no-Node environment still

@@ -127,12 +127,14 @@ lines=$(wc -l < AGENTS.md | tr -d ' ')
 [ -x scripts/verify ] || fail "scripts/verify must be executable"
 [ -x scripts/repo-check ] || fail "scripts/repo-check must be executable"
 [ -x scripts/bootstrap-repository ] || fail "scripts/bootstrap-repository must be executable"
+[ -x scripts/tests/bootstrap-behavior ] || fail "scripts/tests/bootstrap-behavior must be executable"
 [ -x .agents/workflows/hitl-loop.template.sh ] ||
   fail "hitl-loop.template.sh must be executable"
 
 sh -n scripts/verify
 sh -n scripts/repo-check
 sh -n scripts/bootstrap-repository
+sh -n scripts/tests/bootstrap-behavior
 bash -n .agents/workflows/hitl-loop.template.sh
 
 # Architecture is not version-branded: the current architecture has no version
@@ -146,21 +148,81 @@ for doc in AGENTS.md README.md docs/README.md docs/architecture/agent-operating-
   rm -f "${TMPDIR:-/tmp}/repo-check-version.$$"
 done
 
-# Source-template owner residue. A repository created from this template keeps
-# the template owner in .github/CODEOWNERS until scripts/bootstrap-repository
-# substitutes the actual owner; deterministic verification fails by design
-# until then. Skipped when the origin remote is absent or not GitHub.
+# .github/CODEOWNERS managed-rule invariants. These are repository-local and
+# mechanical only; GitHub validity/access verification belongs to
+# scripts/bootstrap-repository --check. The managed-path list and the
+# source-template owner are read from the bootstrap script (single owner).
+command -v jq >/dev/null 2>&1 || fail "jq is required by scripts/bootstrap-repository"
+managed_paths=$(awk -F"'" '/^MANAGED_PATHS=/ {print $2}' scripts/bootstrap-repository)
+template_owner=$(awk -F= '/^TEMPLATE_OWNER=/ {print $2}' scripts/bootstrap-repository)
+[ -n "$managed_paths" ] || fail "cannot read MANAGED_PATHS from scripts/bootstrap-repository"
+[ -n "$template_owner" ] || fail "cannot read TEMPLATE_OWNER from scripts/bootstrap-repository"
+
+valid_owner_token() {
+  printf '%s' "$1" | grep -qE '^[A-Za-z0-9][A-Za-z0-9-]*(/[A-Za-z0-9][A-Za-z0-9._-]*)?$'
+}
+
+co_managed_token=
+for p in $managed_paths; do
+  rows=$(awk -v want="$p" '
+    /^[[:space:]]*#/ { next }
+    /^[[:space:]]*$/ { next }
+    $1 == want { printf "%d:", NR; for (i = 2; i <= NF; i++) printf "%s ", $i; printf "\n" }
+  ' .github/CODEOWNERS)
+  rows_n=$(printf '%s\n' "$rows" | sed '/^$/d' | wc -l | tr -d ' ')
+  [ "$rows_n" -eq 1 ] ||
+    fail ".github/CODEOWNERS managed rule for '$p' appears $rows_n times (expected exactly one)"
+  line=$(printf '%s\n' "$rows" | head -n 1)
+  owners=${line#*:}
+  tokens=
+  for t in $owners; do
+    case $t in
+      @*) tok=${t#@} ;;
+      *) fail ".github/CODEOWNERS managed rule for '$p' has a non-'@' owner token '$t'" ;;
+    esac
+    valid_owner_token "$tok" ||
+      fail ".github/CODEOWNERS managed rule for '$p' has an invalid owner token '@$tok'"
+    tokens="$tokens $tok"
+  done
+  set -- $tokens
+  [ $# -eq 1 ] ||
+    fail ".github/CODEOWNERS managed rule for '$p' has $# owner tokens; the template manages exactly one owner per managed rule"
+  if [ -z "$co_managed_token" ]; then
+    co_managed_token=$1
+  elif [ "$co_managed_token" != "$1" ]; then
+    fail ".github/CODEOWNERS managed rules disagree on the owner (@$co_managed_token vs @$1); the managed rules must state one managed owner"
+  fi
+done
+[ -n "$co_managed_token" ] || fail ".github/CODEOWNERS contains no managed owner rules"
+
+# Every owner token on every rule line (managed or custom) must be a
+# syntactically valid '@user' or '@org/team' token.
+for t in $(
+    awk '/^[[:space:]]*#/ { next } /^[[:space:]]*$/ { next } { for (i = 2; i <= NF; i++) print $i }' .github/CODEOWNERS
+  ); do
+  case $t in
+    @*) tok=${t#@} ;;
+    *) fail ".github/CODEOWNERS has an invalid owner token '$t' (missing '@')" ;;
+  esac
+  valid_owner_token "$tok" ||
+    fail ".github/CODEOWNERS has an invalid owner token '@$tok'"
+done
+
+# Stale source-template owner: a repository created from this template keeps
+# the template owner in the managed rules until scripts/bootstrap-repository
+# substitutes a validated owner; deterministic verification fails by design
+# until then. Deliberate non-default owners and the template repository itself
+# pass. Skipped when the origin remote is absent or not GitHub.
 if remote_url=$(git remote get-url origin 2>/dev/null); then
   case $remote_url in
     *github.com[:/]*)
       origin_owner=$(printf '%s\n' "$remote_url" | sed -E 's#^.*[/:]([^/]+)/[^/]+(\.git)?$#\1#')
-      co_owners=$(
-        sed -n -E 's/^[[:space:]]*[^#[:space:]][^ ]*[[:space:]]+@([A-Za-z0-9-]+)(\/[A-Za-z0-9._-]+)?[[:space:]]*$/\1/p' .github/CODEOWNERS |
-          LC_ALL=C sort -u
-      )
-      [ -n "$co_owners" ] || fail ".github/CODEOWNERS contains no owner rule"
-      if [ "$co_owners" != "$origin_owner" ]; then
-        fail "CODEOWNERS owner (@$co_owners) does not match the repository owner (@$origin_owner); run scripts/bootstrap-repository"
+      if [ "$origin_owner" != "$template_owner" ]; then
+        case $co_managed_token in
+          "$template_owner" | "$template_owner"/*)
+            fail "source-template owner residue: managed CODEOWNERS rules still name @$co_managed_token while this repository is owned by @$origin_owner; run scripts/bootstrap-repository"
+            ;;
+        esac
       fi
       ;;
   esac

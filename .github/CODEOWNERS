@@ -1,10 +1,16 @@
 # Ownership of sensitive operating surfaces.
 #
-# MainTemplate is a GitHub Template Repository. A generated repository must
-# replace @anthracite-labs below with its own owning user or team, otherwise
-# these rules will not resolve. This file remains required: scripts/repo-check
-# enforces its presence and /AGENTS.md maps it as a current enforcement
-# surface, so substitute the owner rather than deleting the file.
+# The six managed rules below are initialized and converged by
+# scripts/bootstrap-repository: it substitutes a GitHub-validated owner
+# (default: the repository owner user, for user-owned repositories;
+# organization-owned repositories require an explicit --owner USER or
+# --owner ORG/TEAM, because a bare organization name cannot own code) and
+# verifies the result with --check. The source template legitimately carries
+# its current owner here until a generated repository bootstraps. Custom
+# rules may be added freely: bootstrap manages only the six managed paths
+# below and preserves everything else. This file is required:
+# scripts/repo-check enforces its structure; /AGENTS.md maps it as a current
+# enforcement surface.
 /AGENTS.md @anthracite-labs
 /.gitattributes @anthracite-labs
 /.agents/ @anthracite-labs

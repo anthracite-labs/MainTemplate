@@ -57,17 +57,25 @@ After creating a repository from this template, run once, deliberately:
     scripts/bootstrap-repository --check    # inspect; changes nothing
     scripts/bootstrap-repository            # apply
 
-It substitutes the real repository owner in `.github/CODEOWNERS` (default: the
-repository's actual owner; `--owner org/team` deliberately selects a team) and
-establishes the `Protect main` ruleset: deletion and non-fast-forward blocked,
-a pull request required with review-thread resolution, the `verify` status
-check required, and merge/squash/rebase allowed. It is idempotent and acts
-only after inspecting: an existing ruleset is converged, never duplicated.
-Ruleset changes
-require repository administration; without it the script fails before changing
-anything, with the missing capability named. There is no bootstrap state file
-— `--check` reads actual GitHub state. `scripts/verify` fails on owner residue
-until bootstrap has run; that is deliberate.
+It manages exactly two things. First, the owner token on the six managed rules
+in `.github/CODEOWNERS`: the default owner is the repository owner when GitHub
+reports it as a user; organization-owned repositories must pass an explicit
+`--owner USER` or `--owner ORG/TEAM` (a bare organization name cannot own
+code). Every requested owner is validated against GitHub before anything
+changes; unverifiable owners are refused, never guessed. Custom rules and
+comments are preserved. Second, this repository's own `Protect main` ruleset:
+deletion and non-fast-forward blocked, a pull request required with
+review-thread resolution, the `verify` status check required, and
+merge/squash/rebase allowed, with no bypass actors. An existing
+repository-owned ruleset of that name is converged, never duplicated;
+inherited organization/enterprise rulesets are outside its authority and are
+reported if they also govern `main`. Ruleset writes require repository
+administration: the script probes that read-only before any mutation and
+fails without changing anything when it is missing; `--check` is read-only.
+There is no bootstrap state file — the managed rules in CODEOWNERS plus
+explicit arguments are the durable inputs, and `--check` reads actual GitHub
+state. `scripts/verify` fails on unbootstrapped source-template owner
+residue; that is deliberate.
 
 ## Design principles
 
