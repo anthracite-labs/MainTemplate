@@ -72,8 +72,8 @@ deletion and non-fast-forward blocked, a pull request required with
 review-thread resolution, the `verify` status check required, and
 merge/squash/rebase allowed, with no bypass actors. An existing
 repository-owned ruleset of that name is converged, never duplicated;
-inherited organization/enterprise rulesets are outside its authority and are
-reported when they explicitly target `main`. Ruleset writes require permission
+inherited organization/enterprise rulesets are outside its authority. A
+best-effort note reports those that explicitly include `refs/heads/main`. Ruleset writes require permission
 to edit repository rules. The script completes discovery and prepares any local
 CODEOWNERS candidate first; when a ruleset write is required, it performs that
 GitHub write before installing the local candidate, so a permission denial
