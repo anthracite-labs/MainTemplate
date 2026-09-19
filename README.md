@@ -72,10 +72,13 @@ deletion and non-fast-forward blocked, a pull request required with
 review-thread resolution, the `verify` status check required, and
 merge/squash/rebase allowed, with no bypass actors. An existing
 repository-owned ruleset of that name is converged, never duplicated;
-inherited organization/enterprise rulesets are outside its authority and are
-reported if they also govern `main`. Ruleset writes require repository
-administration: the script probes that read-only before any mutation and
-fails without changing anything when it is missing; `--check` is read-only.
+inherited organization/enterprise rulesets are outside its authority. A
+best-effort note reports those that explicitly include `refs/heads/main`. Ruleset writes require permission
+to edit repository rules. The script completes discovery and prepares any local
+CODEOWNERS candidate first; when a ruleset write is required, it performs that
+GitHub write before installing the local candidate, so a permission denial
+leaves the working tree unchanged. If the ruleset already matches, no
+ruleset-write permission is demanded; `--check` is read-only.
 There is no bootstrap state file — the managed rules in CODEOWNERS plus
 explicit arguments are the durable inputs, and `--check` reads actual GitHub
 state. `scripts/verify` fails on unbootstrapped source-template owner

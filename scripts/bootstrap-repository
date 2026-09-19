@@ -47,8 +47,8 @@ Manages exactly two things in this repository:
      configuration (deletion and non-fast-forward blocked; a pull request
      required with review-thread resolution; the "verify" status check
      required; merge/squash/rebase allowed; no bypass actors; no exclusions).
-     Inherited organization/enterprise rulesets are never modified and are
-     reported if they also govern main.
+     Inherited organization/enterprise rulesets are never modified. A
+     best-effort note reports those that explicitly include refs/heads/main.
 
 Ownership:
   - User-owned repository: the default managed owner is the repository owner
@@ -67,11 +67,14 @@ Ownership:
     changed. Unverifiable owners are refused, never guessed.
 
 Permissions:
-  - Ruleset writes require repository administration. Apply mode probes that
-    capability read-only BEFORE any mutation (working tree or GitHub) and
-    fails with the exact missing capability if it is absent.
-  - When no ruleset write is needed, administration is not demanded.
-  - --check is read-only and never requires administration.
+  - Ruleset writes require permission to edit repository rules (for example
+    repository Administration: write, or equivalent rules-edit authority).
+  - Apply mode completes discovery and prepares any local CODEOWNERS candidate
+    before mutation. When a ruleset write is needed, that GitHub write is
+    attempted before the local candidate is installed, so a permission denial
+    leaves the working tree unchanged.
+  - When no ruleset write is needed, ruleset-write permission is not demanded.
+  - --check is read-only and never writes.
 USAGE
 }
 
@@ -415,8 +418,6 @@ fi
 
 # ------------------------------------------------------------ apply mode
 
-# Administration preflight BEFORE any mutation: needed only when a ruleset
-# write is actually required.
 rs_action=none
 case $(ruleset_status) in
   matches) : ;;
@@ -424,24 +425,23 @@ case $(ruleset_status) in
   differs) rs_action=update ;;
 esac
 
-if [ "$rs_action" != none ]; then
-  probe=$(gh api -i "repos/$repo/branches/main/protection" 2>/dev/null |
-    sed -n 's/^HTTP[^ ]* \([0-9][0-9][0-9]\).*/\1/p' | head -n 1) || probe=
-  case $probe in
-    200 | 404) : ;;
-    *)
-      fail "repository administration permission is required to $rs_action the '$RULESET_NAME' ruleset; the current GitHub credentials cannot administer $repo (probe returned ${probe:-no response}). Nothing was changed — not the working tree, not GitHub. Re-authenticate with an admin-capable account or token and rerun. (--check never requires administration.)"
-      ;;
-  esac
-fi
-
-# Mutation 1: managed CODEOWNERS owner token, by exact line number.
+# Prepare the managed CODEOWNERS edit, but do not install it yet. The candidate
+# lives beside CODEOWNERS so a later rename is local and atomic. If preparation
+# fails, no GitHub mutation has happened. If a required ruleset write is denied,
+# the trap removes the candidate and the working tree remains unchanged.
 tmp_co=
-cleanup_tmp() { rm -f "${tmp_co:-/nonexistent}"; }
+cleanup_tmp() { [ -z "${tmp_co:-}" ] || rm -f "$tmp_co"; }
 trap cleanup_tmp EXIT HUP INT TERM
+
 if [ -n "$changed_lines" ]; then
+  co_dir=$(dirname "$CODEOWNERS")
+  [ -w "$CODEOWNERS" ] ||
+    fail "$CODEOWNERS is not writable; nothing was changed"
+  [ -w "$co_dir" ] ||
+    fail "$co_dir is not writable; nothing was changed"
+
   esc() {
-    printf '%s' "$1" | sed -e 's/[.\/]/\\&/g'
+    printf '%s' "$1" | sed -e 's/[.\\/]/\\&/g'
   }
   old_esc=$(esc "$managed_token")
   new_esc=$(esc "$desired_owner")
@@ -449,27 +449,42 @@ if [ -n "$changed_lines" ]; then
   for ln in $changed_lines; do
     sed_args="$sed_args -e ${ln}s|@$old_esc|@$new_esc|g"
   done
-  tmp_co=$(mktemp "${TMPDIR:-/tmp}/codeowners.XXXXXX")
+
+  tmp_co=$(mktemp "$co_dir/.CODEOWNERS.bootstrap.XXXXXX") ||
+    fail "cannot prepare a CODEOWNERS candidate in $co_dir; nothing was changed"
   # shellcheck disable=SC2086  # word splitting of -e args is intended
-  sed $sed_args "$CODEOWNERS" > "$tmp_co"
-  if diff -u "$CODEOWNERS" "$tmp_co" > "${TMPDIR:-/tmp}/codeowners.diff.$$" 2>/dev/null; then
-    rm -f "${TMPDIR:-/tmp}/codeowners.diff.$$"
-  else
-    cat "${TMPDIR:-/tmp}/codeowners.diff.$$" >&2
-    rm -f "${TMPDIR:-/tmp}/codeowners.diff.$$"
-    mv "$tmp_co" "$CODEOWNERS"
+  sed $sed_args "$CODEOWNERS" > "$tmp_co" ||
+    fail "cannot prepare the managed CODEOWNERS edit; nothing was changed"
+
+  if cmp -s "$CODEOWNERS" "$tmp_co"; then
+    rm -f "$tmp_co"
     tmp_co=
-    printf '%s\n' "bootstrap: managed rules in $CODEOWNERS now name @$desired_owner (review and commit; custom rules were preserved)"
+  else
+    diff -u "$CODEOWNERS" "$tmp_co" >&2 || true
   fi
 else
   printf '%s\n' "bootstrap: managed rules in $CODEOWNERS already name @$desired_owner (no change)"
 fi
 
-# Mutation 2: the repository's own ruleset. Failures are reported honestly,
-# including what already succeeded locally.
+install_codeowners() {
+  [ -n "${tmp_co:-}" ] || return 0
+  if mv "$tmp_co" "$CODEOWNERS"; then
+    tmp_co=
+    printf '%s\n' "bootstrap: managed rules in $CODEOWNERS now name @$desired_owner (review and commit; custom rules were preserved)"
+    return 0
+  fi
+  fail "the GitHub ruleset operation may already have succeeded, but the prepared $CODEOWNERS edit could not be installed. Inspect actual GitHub ruleset state and the working tree before rerunning."
+}
+
+# When a ruleset write is required, perform it before installing CODEOWNERS.
+# This is the only reliable permission check: GitHub read endpoints can prove
+# Administration: read but not Administration: write. A denied write therefore
+# leaves the managed CODEOWNERS file unchanged. Transport/API failures are
+# reported as ambiguous because a client-side failure cannot prove server state.
 case $rs_action in
   none)
     printf '%s\n' "bootstrap: '$RULESET_NAME' ruleset already matches the intended configuration (no change)"
+    install_codeowners
     ;;
   create)
     printf '%s\n' "bootstrap: creating '$RULESET_NAME' ruleset on $repo"
@@ -477,12 +492,10 @@ case $rs_action in
 $desired_body
 EOF
     then
-      if [ -n "$changed_lines" ]; then
-        fail "the ruleset creation failed; $CODEOWNERS was already updated locally (that edit is idempotent and safe to keep), but GitHub-side configuration was not changed. Inspect the API error above, fix the cause, and rerun."
-      fi
-      fail "the ruleset creation failed; GitHub-side configuration was not changed. Inspect the API error above, fix the cause, and rerun."
+      fail "the ruleset creation did not report success; $CODEOWNERS was not changed. Inspect the actual GitHub ruleset state before rerunning because API or transport failures can be ambiguous."
     fi
-    printf '%s\n' "bootstrap: ruleset '$RULESET_NAME' created — verify with scripts/bootstrap-repository --check"
+    printf '%s\n' "bootstrap: ruleset '$RULESET_NAME' created"
+    install_codeowners
     ;;
   update)
     printf '%s\n' "bootstrap: converging repository-owned '$RULESET_NAME' ruleset ($ruleset_id)"
@@ -490,12 +503,10 @@ EOF
 $desired_body
 EOF
     then
-      if [ -n "$changed_lines" ]; then
-        fail "the ruleset update failed; $CODEOWNERS was already updated locally (that edit is idempotent and safe to keep), but GitHub-side configuration was not changed. Inspect the API error above, fix the cause, and rerun."
-      fi
-      fail "the ruleset update failed; GitHub-side configuration was not changed. Inspect the API error above, fix the cause, and rerun."
+      fail "the ruleset update did not report success; $CODEOWNERS was not changed. Inspect the actual GitHub ruleset state before rerunning because API or transport failures can be ambiguous."
     fi
-    printf '%s\n' "bootstrap: ruleset '$RULESET_NAME' converged — verify with scripts/bootstrap-repository --check"
+    printf '%s\n' "bootstrap: ruleset '$RULESET_NAME' converged"
+    install_codeowners
     ;;
 esac
 

@@ -195,18 +195,10 @@ for p in $managed_paths; do
 done
 [ -n "$co_managed_token" ] || fail ".github/CODEOWNERS contains no managed owner rules"
 
-# Every owner token on every rule line (managed or custom) must be a
-# syntactically valid '@user' or '@org/team' token.
-for t in $(
-    awk '/^[[:space:]]*#/ { next } /^[[:space:]]*$/ { next } { for (i = 2; i <= NF; i++) print $i }' .github/CODEOWNERS
-  ); do
-  case $t in
-    @*) tok=${t#@} ;;
-    *) fail ".github/CODEOWNERS has an invalid owner token '$t' (missing '@')" ;;
-  esac
-  valid_owner_token "$tok" ||
-    fail ".github/CODEOWNERS has an invalid owner token '@$tok'"
-done
+# Only the six bootstrap-managed rules are constrained here. Custom CODEOWNERS
+# rules are deliberately left to GitHub's CODEOWNERS parser: valid custom rules
+# may use multiple owners, email owners, inline comments, and other supported
+# syntax. repo-check must not become a competing partial CODEOWNERS parser.
 
 # Stale source-template owner: a repository created from this template keeps
 # the template owner in the managed rules until scripts/bootstrap-repository
