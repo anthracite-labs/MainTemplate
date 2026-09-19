@@ -81,6 +81,13 @@ assert_file_eq() { # <desc> <file1> <file2>
     badc "$1" "files differ: $2 vs $3"
   fi
 }
+assert_file_contains() { # <desc> <file> <literal needle>
+  if grep -qF -e "$3" "$2" 2>/dev/null; then
+    okc "$1"
+  else
+    badc "$1" "expected $2 to contain: $3"
+  fi
+}
 assert_empty() { # <desc> <file>
   if [ ! -s "$2" ]; then
     okc "$1"
@@ -351,11 +358,11 @@ assert_eq 's1: managed owner substituted with repository owner user' \
 assert_eq 's1: every managed rule moved' \
   "$(for p in $MANAGED_PATHS; do co_owner "$p" "$S/repo/.github/CODEOWNERS"; done | sort -u)" \
   '@alice'
-assert_out 's1: custom @owner rule preserved' '/custom/ @custom-owner'
-assert_out 's1: custom email owner preserved' '*.go docs@example.com'
-assert_out 's1: custom inline comment preserved' '*.js @js-owner # inline CODEOWNERS comment'
-assert_out 's1: custom multi-owner rule preserved' '/multi/ @owner-one @owner-two'
-assert_out 's1: header comment preserved' 'fixture header commentary'
+assert_file_contains 's1: custom @owner rule preserved' "$S/repo/.github/CODEOWNERS" '/custom/ @custom-owner'
+assert_file_contains 's1: custom email owner preserved' "$S/repo/.github/CODEOWNERS" '*.go docs@example.com'
+assert_file_contains 's1: custom inline comment preserved' "$S/repo/.github/CODEOWNERS" '*.js @js-owner # inline CODEOWNERS comment'
+assert_file_contains 's1: custom multi-owner rule preserved' "$S/repo/.github/CODEOWNERS" '/multi/ @owner-one @owner-two'
+assert_file_contains 's1: header comment preserved' "$S/repo/.github/CODEOWNERS" 'fixture header commentary'
 assert_empty 's1: no GitHub mutation performed' "$S/mock/mutations.log"
 cp "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
 expect_ok 's1: second apply is a no-op' run
