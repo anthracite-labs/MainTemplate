@@ -41,6 +41,8 @@ If none, write None.
 
 <!-- List deliberately selected capabilities. If none, write None. -->
 
+None
+
 # Constraints
 
 <!-- Hard boundaries that must remain true. -->
@@ -58,10 +60,11 @@ If none, write None.
 <!--
 Task-specific checks only. Standing verification behavior (scripts/verify,
 complete-diff inspection, acceptance-criteria mapping) is owned by
-/.agents/arena/AGENTS.md and always applies.
+/.agents/arena/AGENTS.md and always applies. If standing verification is
+sufficient, write None.
 -->
 
-- [ ]
+None
 
 # Expected result
 
@@ -79,11 +82,16 @@ complete-diff inspection, acceptance-criteria mapping) is owned by
 
 <!--
 Task-specific escalation conditions only. Standing escalation rules are owned
-by /.agents/arena/AGENTS.md. If there are no task-specific ones, write None.
+by /.agents/arena/AGENTS.md and always apply. If there are no task-specific
+ones, write None.
 -->
+
+None
 
 # PR / completion evidence
 
 <!--
 Evidence beyond the standard PR template requirements. If none, write None.
 -->
+
+None

@@ -17,27 +17,34 @@ repository truth is continuous.
 
 ## Authority domains
 
-Authority is layered rather than flat. Root `AGENTS.md` owns the normative
-authority and conflict rules; this section records the structural shape those
-rules govern.
+Authority is not one flat ladder. It is divided into distinct domains, each
+answering a different question. Root `AGENTS.md` owns the normative authority
+and conflict rules; this section records only the structural shape those rules
+govern.
 
-Ordered from most to least authoritative:
+| Domain | Question it answers | Held by |
+|---|---|---|
+| Project truth | What is true or decided? | Accepted requirements, architecture, ADRs, canonical project docs |
+| Agent operating policy | How may agents operate? | Root and role-specific `AGENTS.md` files |
+| Task contract | What must Arena do now? | The assigned GitHub Issue |
+| Task procedure/capability | How is the bounded task carried out? | Selected workflows and any adopted capabilities |
+| Evidence/reference | What verifies or informs the work? | Code, tests, config, research, runtime observation |
 
-1. Project truth — accepted requirements, architecture, ADRs, canonical docs.
-2. Agent operating policy — root and role-specific `AGENTS.md` files.
-3. Task contract — the assigned GitHub Issue.
-4. Task procedure/capability — selected workflows and any adopted capabilities.
-5. Evidence/reference — code, tests, config, research, runtime observation.
+The domains constrain each other rather than forming a single ranking. The
+Issue defines the current task within project truth and operating policy;
+workflows and capabilities are subordinate procedures; evidence informs and
+verifies work but does not silently override governing truth or policy.
+Conflicts within a single domain are surfaced rather than guessed through.
 
-A lower layer never silently overrides a higher one.
+Root `AGENTS.md` states the binding form of these rules.
 
 ## Responsibility boundaries
 
 | Surface | Responsibility |
 |---|---|
 | `/AGENTS.md` | Repository constitution, authority model, map, role routing |
+| `/.agents/RESEARCH.md` | Shared canonical research/evidence standard used by both roles |
 | `/.agents/chatgpt/AGENTS.md` | ChatGPT operating contract |
-| `/.agents/chatgpt/RESEARCH.md` | Canonical external research/evidence standard, referenced by the research workflow |
 | `/.agents/chatgpt/ARENA-DISPATCH.md` | Arena Issue compiler and canonical external execution prompt |
 | `/.agents/arena/AGENTS.md` | Arena standing execution policy |
 | `/.agents/workflows/` | Reusable task procedures |
@@ -80,36 +87,37 @@ Normative loading rules are owned by root and role `AGENTS.md`.
 ## Verification
 
 `scripts/verify` is the single stable repository verification entry point. It
-delegates repository operating invariants to `scripts/repo-check` and performs
-content checks over both committed history and any current worktree/index
-changes. GitHub Actions runs `scripts/verify` on pull requests and pushes to
-`main`.
+delegates repository operating invariants to `scripts/repo-check`, then runs
+content checks over the current committed `HEAD` tree and over the
+submit-ready worktree/index state when that differs from `HEAD`. GitHub Actions
+runs `scripts/verify` on pull requests and pushes to `main`.
 
 ## Accepted architectural decisions
 
-These are the durable decisions that shape the structure above.
+These record what was chosen and why. Root and role policy govern any future
+change to them.
 
-**No canonical state store.** V1 deliberately has no `state.json` or
-`CURRENT.md`. Operational state is reconstructed from Issues, PRs, branches,
-Git history, accepted docs/ADRs, and current implementation evidence, because
-GitHub already stores that state durably and a second store would become a
-competing mutable copy. `scripts/repo-check` enforces the absence of both
-files. Dedicated state machinery would require a measured recovery failure that
-Git/GitHub cannot solve.
+**No canonical state store.** V1 has no `state.json` or `CURRENT.md`.
+Operational state is reconstructed from Issues, PRs, branches, Git history,
+accepted docs/ADRs, and current implementation evidence, because GitHub already
+stores that state durably and a second store would become a competing mutable
+copy. `scripts/repo-check` enforces the absence of both files. Root policy
+governs any future adoption of state machinery.
 
 **Smallest coherent mechanism.** The stack ships only surfaces with a
-demonstrated current use. Frameworks, dependencies, memory systems, external
-services, specialized skills, and tool adapters are demand-driven extensions:
-each requires a concrete gap, deliberate human + ChatGPT selection, and a
-removal path. Directories are created when something real occupies them, never
-in advance, so the repository map always describes the actual filesystem.
+demonstrated current use, which is why no skills, tool adapters, or eval
+machinery exist in V1. The repository map therefore describes the actual
+filesystem rather than reserved names. Root policy governs any future
+capability adoption.
 
 **Deterministic verification over self-report.** Completion is evidenced by a
-repo-owned script that any participant can rerun, not by agent prose.
+repo-owned script any participant can rerun. `scripts/verify` is the single
+entry point, which keeps local execution and CI on the same check.
 
 **One canonical owner per mutable rule.** Operating policy lives in `AGENTS.md`
-files; this document describes structure and records decisions. Task detail
-lives in the Issue. The external Arena execution prompt has exactly one owner.
+files; reusable procedure lives in shared standards and workflows; task detail
+lives in the Issue; this document records structure and rationale. The external
+Arena execution prompt is owned solely by `/.agents/chatgpt/ARENA-DISPATCH.md`.
 
 External GitHub administration such as branch protection/rulesets is separate
 from this repository architecture and is tracked as operational work.

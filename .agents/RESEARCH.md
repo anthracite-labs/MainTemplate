@@ -1,8 +1,9 @@
 # Research Standard
 
-This file is the canonical owner of the reusable research procedure and
-evidence rules for this repository. ChatGPT applies it directly;
-`.agents/workflows/research.md` references it for assigned research tasks.
+Shared, role-neutral standard. This file is the canonical owner of the reusable
+research procedure and evidence rules for this repository. Both ChatGPT policy
+and the Arena research workflow reference it; role-specific research behavior
+stays in the role's own file.
 
 Use it whenever external research, freshness verification, ecosystem comparison, or evidence-backed recommendation materially affects the answer or an Arena task.
 

@@ -60,8 +60,8 @@ Conflict rules:
 
 ### Agent operating layer
 
+- .agents/RESEARCH.md — shared canonical research/evidence standard.
 - .agents/chatgpt/AGENTS.md — ChatGPT's role with the human.
-- .agents/chatgpt/RESEARCH.md — canonical external research/evidence standard.
 - .agents/chatgpt/ARENA-DISPATCH.md — Arena Issue/prompt compiler.
 - .agents/arena/AGENTS.md — Arena execution contract.
 - .agents/workflows/ — reusable task procedures: research, plan, implement,
