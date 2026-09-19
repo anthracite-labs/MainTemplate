@@ -53,14 +53,18 @@ the top of the prototype.
 6. **Record the answer, then delete the artifact.** This repository's
    retention policy — prototypes are temporary by default; this replaces the
    upstream "commit to a throwaway branch" default:
+   - the validated design/behavior may survive; prototype code does not become
+     production merely because the experiment succeeded. Production
+     implementation must satisfy normal implementation, testing, verification,
+     and review standards;
    - fold any validated decision into the real project decisions (canonical
      docs/ADRs, the spec, or the Issue, per the durable-decision rule);
    - record the **question, the evidence, and the conclusion** in the relevant
      GitHub Issue or accepted project truth — the answer is the durable output,
      not the code;
    - **delete temporary prototype code before completion.** Do not create
-     permanent `prototype/*` branches by default.
-   - Retain the prototype artifact itself only when it is necessary durable
+     permanent `prototype/*` branches by default;
+   - retain the prototype artifact itself only when it is necessary durable
      evidence (e.g. a captured interaction that a decision cites) **and** the
      human/ChatGPT task contract explicitly selects that outcome, stating where
      the artifact lives.

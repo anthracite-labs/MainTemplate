@@ -146,6 +146,9 @@ Once a variant has won, follow rule 6 in [SKILL.md](SKILL.md):
   conclusion) in the relevant GitHub Issue or accepted project truth;
 - fold the winner into the real code — rewritten properly, since variant code
   was written under prototype constraints (no tests, minimal error handling);
+  the validated design survives, but prototype code does not become production
+  merely because the experiment succeeded; production implementation must satisfy
+  normal implementation, testing, verification, and review standards;
 - **delete the losing variants and the switcher.** Sub-shape A: the existing
   page keeps only the folded winner. Sub-shape B: the winning design is
   promoted to a real route and the throwaway route is deleted.
@@ -163,6 +166,8 @@ Once a variant has won, follow rule 6 in [SKILL.md](SKILL.md):
   variant needs to mutate, point it at a stub: the question is "what should
   this look like", not "does the backend work".
 - **Promoting the prototype directly to production.** The variant code was
-  written under prototype constraints. Rewrite it properly when you fold it in.
+  written under prototype constraints. Rewrite it properly when you fold it in;
+  production implementation must satisfy normal testing, verification, and
+  review standards.
 - **Leaving the prototype in the tree or on a permanent branch.** The answer is
   durable; the code is not (SKILL.md rule 6).

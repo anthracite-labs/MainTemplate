@@ -140,7 +140,9 @@ Conceptually:
 8. Human + ChatGPT review the actual diff and evidence before merge.
 
 The Issue owns task detail. The Arena role contract does not duplicate boot
-navigation.
+navigation. The manual acceptance test in
+`docs/verification/arena-boot-acceptance.md` establishes whether a fresh Arena
+execution honors this authority sequence when given conflicting instructions.
 
 ## Progressive disclosure
 
@@ -188,6 +190,15 @@ current surface; imports are self-contained, not runtime dependencies.
 **Deterministic verification over self-report.** Completion is evidenced by a
 repo-owned script any participant can rerun. `scripts/verify` is the single
 entry point, which keeps local execution and CI on the same check.
+
+**Advisory ownership and review routing.** `.github/CODEOWNERS` identifies
+ownership and routes pull request reviews for sensitive operating surfaces.
+The accepted repository ruleset deliberately requires zero approving reviews
+and leaves code-owner review disabled (`require_code_owner_review: false`),
+preserving the operating model where Human + ChatGPT review before merge.
+CODEOWNERS provides advisory review routing rather than mandatory merge-blocking
+approval; any change to merge authority is consequential architecture requiring
+explicit human approval.
 
 **One canonical owner per mutable rule.** Operating policy lives in `AGENTS.md`
 files; reusable procedure lives in shared standards and workflows; task detail

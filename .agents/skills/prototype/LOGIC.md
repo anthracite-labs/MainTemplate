@@ -35,9 +35,10 @@ user is watching now or returning to it AFK.
 ### 2. Isolate the logic in a portable module
 
 Put the actual logic (the bit that's answering the question) in a single
-`<script>` block written as a small, pure module that could be lifted out and
-dropped into the real codebase later. The page around it is throwaway; this
-module isn't.
+`<script>` block written as a small, pure module. The validated design and
+behavior may survive to inform the final implementation, but the prototype code
+itself is throwaway: prototype code does not become production merely because the
+experiment succeeded.
 
 The right shape depends on the question:
 
@@ -54,8 +55,9 @@ Pick whichever shape best fits the question being asked, *not* whichever is
 easiest to wire to a page. Keep it pure: no DOM, no `document`, no button
 handlers reaching inside it. The page calls into it; nothing flows the other
 direction. This is what makes the prototype useful past its own lifetime: once
-the question's answered, the validated reducer / machine / function set lifts
-into the real module on its own.
+the question is answered, the validated behavior and design directly inform the
+production implementation, which must satisfy normal testing, verification, and
+review standards.
 
 ### 3. Build the shareable HTML file
 
@@ -104,10 +106,12 @@ they want new actions or a new scenario, add them. Prototypes evolve.
 ### 5. Record the answer, then delete
 
 Once the prototype has answered its question, follow rule 6 in
-[SKILL.md](SKILL.md): fold the validated reducer / machine / function set into
-the real module (the decision, absorbed); record the question, evidence, and
-conclusion in the relevant GitHub Issue or accepted project truth; delete the
-HTML shell. Retain the shell only when the task contract explicitly selects the
+[SKILL.md](SKILL.md): record the question, evidence, and conclusion in the
+relevant GitHub Issue or accepted project truth (the decision/behavior is
+absorbed). Delete the prototype artifact. Prototype code does not become
+production directly: the production implementation must satisfy normal
+implementation, testing, verification, and review standards. Retain the
+prototype artifact itself only when the task contract explicitly selects the
 prototype as durable evidence.
 
 ## Anti-patterns
@@ -117,14 +121,15 @@ prototype as durable evidence.
   question is specifically about persistence.
 - **Don't generalise.** No "what if we wanted to support X later." The
   prototype answers one question.
-- **Don't blur the logic and the page together.** If the pure module references
-  the DOM, `document`, or button handlers, it's no longer liftable. Keep the
-  page as a thin shell over a pure module.
+- **Don't blur the logic and the page together.** If the state model references
+  the DOM, `document`, or button handlers, it is hard to isolate or evaluate.
+  Keep the page as a thin shell over a pure state model.
 - **Don't reach for a framework, bundler, server, or CDN.** One file the
   recipient double-clicks; a React app, a dev server, or a CDN script defeats
   "shareable" and "offline."
-- **Don't ship the HTML shell into production.** The page is optimised for
-  being clicked through by hand. The logic module behind it is the bit worth
-  keeping.
+- **Don't ship prototype code into production.** Neither the HTML shell nor the
+  prototype script becomes production code merely because the experiment
+  succeeded. The validated design survives; the production implementation must
+  satisfy normal testing, verification, and review standards.
 - **Don't leave the prototype in the tree.** Once the answer is recorded, the
-  shell is deleted, not merged (SKILL.md rule 6).
+  prototype artifact is deleted, not merged (SKILL.md rule 6).

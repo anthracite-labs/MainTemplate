@@ -1,4 +1,4 @@
-# Ownership of sensitive operating surfaces.
+# Advisory ownership and review routing for sensitive operating surfaces.
 #
 # The six managed rules below are initialized and converged by
 # scripts/bootstrap-repository: it substitutes a GitHub-validated owner
@@ -9,8 +9,9 @@
 # its current owner here until a generated repository bootstraps. Custom
 # rules may be added freely: bootstrap manages only the six managed paths
 # below and preserves everything else. This file is required:
-# scripts/repo-check enforces its structure; /AGENTS.md maps it as a current
-# enforcement surface.
+# scripts/repo-check enforces its structure; /AGENTS.md maps it as an
+# advisory ownership and review-routing surface (the repository ruleset does
+# not require code-owner approval to merge).
 /AGENTS.md @anthracite-labs
 /.gitattributes @anthracite-labs
 /.agents/ @anthracite-labs

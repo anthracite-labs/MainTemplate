@@ -78,6 +78,7 @@ scripts/verify
 scripts/repo-check
 docs/README.md
 docs/architecture/agent-operating-stack.md
+docs/verification/arena-boot-acceptance.md
 '
 
 printf '%s\n' "$required_files" | while IFS= read -r path; do
@@ -139,13 +140,106 @@ bash -n .agents/workflows/hitl-loop.template.sh
 
 # Architecture is not version-branded: the current architecture has no version
 # label, and none may quietly return. Vendored upstream content is excluded.
-for doc in AGENTS.md README.md docs/README.md docs/architecture/agent-operating-stack.md; do
+for doc in AGENTS.md README.md docs/README.md docs/architecture/agent-operating-stack.md docs/verification/arena-boot-acceptance.md; do
   if grep -nE '\bV[0-9]+\b' "$doc" > "${TMPDIR:-/tmp}/repo-check-version.$$" 2>/dev/null; then
     cat "${TMPDIR:-/tmp}/repo-check-version.$$" >&2
     rm -f "${TMPDIR:-/tmp}/repo-check-version.$$"
     fail "architecture version marker reintroduced in $doc (the architecture is not versioned)"
   fi
   rm -f "${TMPDIR:-/tmp}/repo-check-version.$$"
+done
+
+# Arena dispatch prompt sequence integrity:
+# Ensure ARENA-DISPATCH.md maintains the canonical execution prompt sequence:
+# root policy -> Arena role policy -> assigned Issue.
+grep -qF 'Read `/AGENTS.md` completely.' .agents/chatgpt/ARENA-DISPATCH.md ||
+  fail "ARENA-DISPATCH.md missing 'Read \`/AGENTS.md\` completely.'"
+grep -qF 'Then read `/.agents/arena/AGENTS.md` completely.' .agents/chatgpt/ARENA-DISPATCH.md ||
+  fail "ARENA-DISPATCH.md missing 'Then read \`/.agents/arena/AGENTS.md\` completely.'"
+grep -qF 'Then open and execute Issue #N exactly as written.' .agents/chatgpt/ARENA-DISPATCH.md ||
+  fail "ARENA-DISPATCH.md missing 'Then open and execute Issue #N exactly as written.'"
+
+# Vendored Cloudflare security-audit set integrity and byte-exact manifest.
+# Rejects ghost files and catches accidental vendor edits without network access.
+expected_cf_files='
+.agents/skills/security-audit/AI-AND-LLM.md
+.agents/skills/security-audit/ATTACK-CLASSES.md
+.agents/skills/security-audit/CLIENT-SIDE.md
+.agents/skills/security-audit/CLOUD-AND-DEPLOYMENT.md
+.agents/skills/security-audit/DATA-ISOLATION-AND-LIFECYCLE.md
+.agents/skills/security-audit/DESKTOP-MOBILE-AND-LOCAL-IPC.md
+.agents/skills/security-audit/HUNTING.md
+.agents/skills/security-audit/LICENSE
+.agents/skills/security-audit/MEMORY-SAFETY-AND-BINARY.md
+.agents/skills/security-audit/PROTOCOLS-RPC-AND-MESSAGING.md
+.agents/skills/security-audit/RECONNAISSANCE.md
+.agents/skills/security-audit/RESOURCE-EXHAUSTION-AND-AVAILABILITY.md
+.agents/skills/security-audit/SKILL.md
+.agents/skills/security-audit/SUPPLY-CHAIN-AND-RELEASE.md
+.agents/skills/security-audit/VALIDATION-AND-REPORTING.md
+.agents/skills/security-audit/WEB-PROTOCOL-AND-AUTH.md
+.agents/skills/security-audit/report-schema.json
+.agents/skills/security-audit/validate-coverage-ledger.cjs
+.agents/skills/security-audit/validate-coverage-ledger.test.cjs
+.agents/skills/security-audit/validate-findings.cjs
+.agents/skills/security-audit/validate-findings.test.cjs
+'
+actual_cf_files=$(find .agents/skills/security-audit -type f | LC_ALL=C sort)
+expected_cf_sorted=$(printf '%s\n' "$expected_cf_files" | sed '/^$/d' | LC_ALL=C sort)
+[ "$actual_cf_files" = "$expected_cf_sorted" ] ||
+  fail "vendored Cloudflare security-audit file set differs (unexpected or ghost files)"
+
+cf_manifest='
+7335a95c43554eadefcf03ece639291bb0e038c398a179299e3887ffe06bd2ef  .agents/skills/security-audit/AI-AND-LLM.md
+3ee4f00c6e8c9dcf6dd02dd5ac2a4ceb322e2085f3e9fbe79cf0c6330bc7ef83  .agents/skills/security-audit/ATTACK-CLASSES.md
+613f6b98f86083e045525c5b60154ffdab122bac35f1e05eb17488e6e453370c  .agents/skills/security-audit/CLIENT-SIDE.md
+3c80f3088be22345e07b057c056d6ed99fe2b0304f794398964f7ccd5a496ca3  .agents/skills/security-audit/CLOUD-AND-DEPLOYMENT.md
+307dcb3e24d292715c4a041190e7bb135646a37eb6187619ae01d000a634a4ad  .agents/skills/security-audit/DATA-ISOLATION-AND-LIFECYCLE.md
+58eae8ee0ca6a46611c501ec5a3ab47fdff88dd7db0d8d74789bbf8bb19d8cb2  .agents/skills/security-audit/DESKTOP-MOBILE-AND-LOCAL-IPC.md
+71c121decea1322c47c718f6e110f1a892980bb4266bd7ac55ef043a213ade09  .agents/skills/security-audit/HUNTING.md
+e598e694aa506650c7192d5ea3be0e50aca0d356ea00551c53429f0b01eb6391  .agents/skills/security-audit/LICENSE
+7c8b0dccfb35315cca2455509674d49632b2fe37e1f3aac16c1a496a7e9924a7  .agents/skills/security-audit/MEMORY-SAFETY-AND-BINARY.md
+8b73816fa5b3697c9c40977f0c836b40f01d6e81929ff2720fe83ce089e9a619  .agents/skills/security-audit/PROTOCOLS-RPC-AND-MESSAGING.md
+02ca887aca84de8ae137f1891bd2f0a54f28d3fa6da92a27f54734382b3381a2  .agents/skills/security-audit/RECONNAISSANCE.md
+4326fab5c92a0b4c420a70196254040105cd794026562130b59bf1a6db3e4baa  .agents/skills/security-audit/RESOURCE-EXHAUSTION-AND-AVAILABILITY.md
+5e3e96a1e438d8f35fef0a1e38f02d4f00e2bdf910401b7dfe00e6779c6dac85  .agents/skills/security-audit/SKILL.md
+f372e919940e335468ba1ae09f99026c3986a345f7fe26f8068f132e199f52a5  .agents/skills/security-audit/SUPPLY-CHAIN-AND-RELEASE.md
+b892470cb89bb31f33403e050d4bdfbe2cdaef940ade1496fa65e32b2e129449  .agents/skills/security-audit/VALIDATION-AND-REPORTING.md
+4f3066dffa23c5635859187be9b96c32f2aff29a688186b91ff0c63e47d62b5c  .agents/skills/security-audit/WEB-PROTOCOL-AND-AUTH.md
+6575c9de4a62255699ea052ebf9a49ebfb373a32891bcd89af6f55cc84b35519  .agents/skills/security-audit/report-schema.json
+2eb280bd2e33c002916f86db9b29f9edfedb6454e5db973c766290465b868ac8  .agents/skills/security-audit/validate-coverage-ledger.cjs
+cfb9df26b03469a4279a70e7664a2a5434dd6f8c2c204e91f9b0aeb9dd71e648  .agents/skills/security-audit/validate-coverage-ledger.test.cjs
+e85f232e36bfac0f866f244da50376692d6b45c690beadcb00608b0e6c8b5283  .agents/skills/security-audit/validate-findings.cjs
+b92001117a92c4161d43777a0ba2fa182a8a4d97f2304cc8c0cee5331497b73b  .agents/skills/security-audit/validate-findings.test.cjs
+'
+if command -v sha256sum >/dev/null 2>&1; then
+  printf '%s\n' "$cf_manifest" | sed '/^$/d' | sha256sum -c --status - ||
+    fail "vendored Cloudflare security-audit content modified; byte-exact integrity failed"
+elif command -v shasum >/dev/null 2>&1; then
+  printf '%s\n' "$cf_manifest" | sed '/^$/d' | shasum -a 256 -c --status - ||
+    fail "vendored Cloudflare security-audit content modified; byte-exact integrity failed"
+fi
+
+# Markdown trailing whitespace: only intentional two-space hard line breaks
+# (non-whitespace followed by exactly two spaces) are allowed. Trailing single
+# spaces, 3+ spaces, trailing tabs, or blank lines with whitespace are rejected.
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  md_files=$(git ls-files -co --exclude-standard '*.md')
+else
+  md_files=$(find . -path './.git' -prune -o -name '*.md' -type f -print | sed 's#^\./##')
+fi
+printf '%s\n' "$md_files" | while IFS= read -r md; do
+  [ -n "$md" ] || continue
+  [ -f "$md" ] || continue
+  awk '
+    /[[:space:]]+$/ {
+      if (!/[^[:space:]]  $/) {
+        print FILENAME ":" FNR ": invalid trailing whitespace (only two-space hard line break allowed)"
+        bad = 1
+      }
+    }
+    END { if (bad) exit 1 }
+  ' "$md" || fail "invalid trailing whitespace in $md"
 done
 
 # .github/CODEOWNERS managed-rule invariants. These are repository-local and

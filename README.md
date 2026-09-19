@@ -39,16 +39,11 @@ prompt defined in `.agents/chatgpt/ARENA-DISPATCH.md`.
 
 ## Capability activation
 
-Root `AGENTS.md` owns the activation rule; exactly three paths activate a
-capability, and existence alone never does:
-
-- **Planning selection** — before any Arena Issue exists, Human + ChatGPT
-  deliberately select a planning/guidance capability from the catalog.
-- **Execution selection** — the assigned Issue names the exact repo-relative
-  capability path and why it applies.
-- **Policy-required procedure** — governing policy makes a procedure
-  universally required (`scripts/verify` is the current example; it is a
-  script, not a skill).
+Root `AGENTS.md` ("Capability rule") owns general capability activation;
+`.agents/skills/README.md` is the detailed catalog and role-routing surface.
+A capability is active only through deliberate planning selection by Human +
+ChatGPT, task selection in an assigned Arena Issue, or governing repository
+policy. Existence alone never activates a capability.
 
 ## Bootstrap a generated repository
 
@@ -57,32 +52,15 @@ After creating a repository from this template, run once, deliberately:
     scripts/bootstrap-repository --check    # inspect; changes nothing
     scripts/bootstrap-repository            # apply
 
-It manages exactly two things. First, the owner token on the six managed rules
-in `.github/CODEOWNERS`: the default owner is the repository owner when GitHub
-reports it as a user; organization-owned repositories must pass an explicit
-`--owner USER` or `--owner ORG/TEAM` (a bare organization name cannot own
-code). Eligibility is precise: a code owner user must have write permission
-or higher on the repository (write, maintain, or admin) — read and triage are
-refused — and a team must hold write permission or higher on it too,
-established from the team's actual repository permission booleans rather
-than mere access or the role's name, so custom repository roles qualify by
-what they can do; unverifiable permission is refused, never guessed. Custom rules
-and comments are preserved. Second, this repository's own `Protect main` ruleset:
-deletion and non-fast-forward blocked, a pull request required with
-review-thread resolution, the `verify` status check required, and
-merge/squash/rebase allowed, with no bypass actors. An existing
-repository-owned ruleset of that name is converged, never duplicated;
-inherited organization/enterprise rulesets are outside its authority. A
-best-effort note reports those that explicitly include `refs/heads/main`. Ruleset writes require permission
-to edit repository rules. The script completes discovery and prepares any local
-CODEOWNERS candidate first; when a ruleset write is required, it performs that
-GitHub write before installing the local candidate, so a permission denial
-leaves the working tree unchanged. If the ruleset already matches, no
-ruleset-write permission is demanded; `--check` is read-only.
-There is no bootstrap state file — the managed rules in CODEOWNERS plus
-explicit arguments are the durable inputs, and `--check` reads actual GitHub
-state. `scripts/verify` fails on unbootstrapped source-template owner
-residue; that is deliberate.
+This configures:
+- the owner token on the managed rules in `.github/CODEOWNERS` (advisory
+  ownership and review routing);
+- this repository's own `Protect main` ruleset (enforces pull requests,
+  review-thread resolution, and the `verify` status check).
+
+Run `scripts/bootstrap-repository --help` for ownership requirements,
+permissions, and command options. `scripts/verify` fails on unbootstrapped
+source-template owner residue until this runs.
 
 ## Design principles
 

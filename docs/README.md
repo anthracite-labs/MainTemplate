@@ -9,6 +9,8 @@ not pre-populate empty documentation trees.
 
 - `architecture/agent-operating-stack.md` — the current accepted operating-
   stack architecture.
+- `verification/arena-boot-acceptance.md` — manual acceptance test verifying
+  the Arena boot authority precedence sequence.
 
 ## Truth discipline
 
