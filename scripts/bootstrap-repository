@@ -1,0 +1,268 @@
+#!/usr/bin/env sh
+# One-time, deliberate repository bootstrap for a repository created from this
+# template. Run it once after creating the repository; it is idempotent and
+# safe to rerun. There is no bootstrap state file: every mode inspects actual
+# current GitHub/repository state.
+#
+# Usage:
+#   scripts/bootstrap-repository            apply CODEOWNERS + main ruleset
+#   scripts/bootstrap-repository --check    verify only; changes nothing
+#   scripts/bootstrap-repository --owner ORG/TEAM   deliberate team ownership
+#   scripts/bootstrap-repository --help
+#
+# What it does:
+#   1. Substitutes the actual repository owner in .github/CODEOWNERS.
+#      Default owner is the repository's actual owner login (never a guess);
+#      --owner selects a user/org or org/team explicitly. The edit is local;
+#      review and commit it. Rule lines only: comments are preserved.
+#   2. Establishes the "Protect main" repository ruleset targeting
+#      refs/heads/main: deletion and non-fast-forward blocked; a pull request
+#      required with review-thread resolution; the "verify" status check
+#      required (the job id in .github/workflows/verify.yml); merge/squash/
+#      rebase allowed. An existing ruleset of that name is inspected and
+#      converged to this configuration; a second ruleset is never created.
+#   3. --check verifies both requirements against actual GitHub state.
+#
+# Permissions: the CODEOWNERS edit is local. Ruleset changes require
+# repository administration. Without it, this script fails before changing
+# anything, with the exact missing capability in the message; --check works
+# read-only without administration.
+
+set -eu
+
+RULESET_NAME='Protect main'
+CODEOWNERS=.github/CODEOWNERS
+
+fail() {
+  printf '%s\n' "bootstrap: $*" >&2
+  exit 1
+}
+
+usage() {
+  sed -n '2,28p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+mode=apply
+owner_override=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --check) mode=check ;;
+    --owner)
+      [ $# -ge 2 ] || fail "--owner requires a value (user/org or org/team)"
+      owner_override=$2
+      shift
+      ;;
+    -h|--help) usage; exit 0 ;;
+    *) printf '%s\n' "bootstrap: unknown argument: $1" >&2; usage >&2; exit 2 ;;
+  esac
+  shift
+done
+
+command -v gh >/dev/null 2>&1 ||
+  fail "gh (GitHub CLI) is required; authenticate with 'gh auth login' first"
+command -v git >/dev/null 2>&1 ||
+  fail "git is required"
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
+  fail "run from within a checkout of the repository"
+
+repo=$(gh repo view --json nameWithOwner -q .nameWithOwner) ||
+  fail "cannot determine the GitHub repository for this checkout"
+repo_owner=$(gh repo view --json owner -q .owner.login) ||
+  fail "cannot determine the owner of $repo"
+
+target_owner=${owner_override:-$repo_owner}
+case $target_owner in
+  @*) fail "--owner must not start with '@'" ;;
+  */[!A-Za-z0-9._-]* | *[!A-Za-z0-9._/-]* | '') fail "invalid owner '$target_owner': use a user/org login or org/team" ;;
+esac
+
+[ -f "$CODEOWNERS" ] ||
+  fail "$CODEOWNERS is missing; this template requires it (restore it, then rerun)"
+
+co_owner_tokens() {
+  sed -n -E 's/^[[:space:]]*[^#[:space:]][^ ]*[[:space:]]+@([A-Za-z0-9-]+)(\/[A-Za-z0-9._-]+)?[[:space:]]*$/\1/p' "$CODEOWNERS" | LC_ALL=C sort -u
+}
+
+co_owners=$(co_owner_tokens)
+[ -n "$co_owners" ] ||
+  fail "no owner rule found in $CODEOWNERS; refusing to guess what to substitute"
+
+if [ "$mode" = apply ]; then
+  # ------------------------------------------- CODEOWNERS owner substitution
+  if [ "$co_owners" = "$repo_owner" ] && { [ -z "$owner_override" ] || [ "$owner_override" = "$repo_owner" ]; }; then
+    printf '%s\n' "bootstrap: $CODEOWNERS already owned by @$repo_owner (no change)"
+  else
+    tmp=$(mktemp "${TMPDIR:-/tmp}/codeowners.XXXXXX")
+    # Substitute owner tokens on rule lines only; comment lines are preserved.
+    sed -e '/^[[:space:]]*#/!s/@[A-Za-z0-9-]\{1,\}\(\/[A-Za-z0-9._-]\{1,\}\)\{0,1\}/@'"$target_owner"'/g' \
+      "$CODEOWNERS" > "$tmp"
+    if diff -u "$CODEOWNERS" "$tmp" > "${TMPDIR:-/tmp}/codeowners.diff.$$" 2>/dev/null; then
+      rm -f "${TMPDIR:-/tmp}/codeowners.diff.$$"
+      printf '%s\n' "bootstrap: $CODEOWNERS content unchanged"
+    else
+      cat "${TMPDIR:-/tmp}/codeowners.diff.$$" >&2
+      rm -f "${TMPDIR:-/tmp}/codeowners.diff.$$"
+      printf '%s\n' "bootstrap: $CODEOWNERS updated in the working tree (review and commit)"
+    fi
+    mv "$tmp" "$CODEOWNERS"
+  fi
+fi
+
+# ---------------------------------------------------------------- ruleset state
+
+# Canonical intended configuration (the accepted "Protect main" behavior).
+desired_body='{
+  "name": "'"$RULESET_NAME"'",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {"ref_name": {"include": ["refs/heads/main"], "exclude": []}},
+  "rules": [
+    {"type": "deletion"},
+    {"type": "non_fast_forward"},
+    {"type": "pull_request", "parameters": {
+      "required_approving_review_count": 0,
+      "dismiss_stale_reviews_on_push": false,
+      "required_reviewers": [],
+      "require_code_owner_review": false,
+      "require_last_push_approval": false,
+      "required_review_thread_resolution": true,
+      "require_extra_approval_for_unattributed_changes": false,
+      "allowed_merge_methods": ["merge", "squash", "rebase"]}},
+    {"type": "required_status_checks", "parameters": {
+      "strict_required_status_checks_policy": false,
+      "do_not_enforce_on_create": false,
+      "required_status_checks": [{"context": "verify"}]}}
+  ]
+}'
+
+# One line per configured fact. The same program normalizes live state, so an
+# existing ruleset is compared and converged, never blindly duplicated.
+norm_query='
+.enforcement,
+"cond:" + (.conditions.ref_name.include | sort | join(",")),
+([.rules[].type] | unique | .[] | "rule:" + .),
+(.rules[] | select(.type == "pull_request") | .parameters | to_entries[] | "pr:" + .key + "=" + (.value | tostring)),
+(.rules[] | select(.type == "required_status_checks") | .parameters | to_entries[] | "rsc:" + .key + "=" + (.value | tostring))
+'
+
+desired_facts=$(printf '%s\n' \
+  active \
+  'cond:refs/heads/main' \
+  'rule:deletion' \
+  'rule:non_fast_forward' \
+  'rule:pull_request' \
+  'rule:required_status_checks' \
+  'pr:allowed_merge_methods=["merge","squash","rebase"]' \
+  'pr:dismiss_stale_reviews_on_push=false' \
+  'pr:require_code_owner_review=false' \
+  'pr:require_extra_approval_for_unattributed_changes=false' \
+  'pr:require_last_push_approval=false' \
+  'pr:required_approving_review_count=0' \
+  'pr:required_reviewers=[]' \
+  'pr:required_review_thread_resolution=true' \
+  'rsc:do_not_enforce_on_create=false' \
+  'rsc:required_status_checks=[{"context":"verify"}]' \
+  'rsc:strict_required_status_checks_policy=false' | LC_ALL=C sort)
+
+api=repos/$repo/rulesets
+ruleset_ids=$(gh api "$api" -q '.[] | [.name, .target, .id] | @tsv' |
+  awk -F'\t' -v n="$RULESET_NAME" '$1 == n && $2 == "branch" {print $3}') ||
+  fail "cannot list rulesets for $repo"
+ruleset_id=$(printf '%s\n' "$ruleset_ids" | sed '/^$/d' | head -n 1)
+if [ "$(printf '%s\n' "$ruleset_ids" | sed '/^$/d' | wc -l | tr -d ' ')" -gt 1 ]; then
+  fail "multiple branch rulesets named '$RULESET_NAME' exist in $repo; resolve the duplication manually"
+fi
+
+if [ -n "$ruleset_id" ]; then
+  current_facts=$(gh api "$api/$ruleset_id" -q "$norm_query" | LC_ALL=C sort) ||
+    fail "cannot read ruleset $ruleset_id of $repo"
+else
+  current_facts=
+fi
+
+# Administration probe. Ruleset writes need repository administration; probe
+# an administration read endpoint so apply mode fails before changing
+# anything. 403 means the current credentials cannot administer the
+# repository; 200/404 mean administration read works (404 = no 'main' branch,
+# which is its own problem and is reported by the API on the real write).
+admin_ok() {
+  probe=$(gh api -i "repos/$repo/branches/main/protection" 2>/dev/null |
+    sed -n 's/^HTTP[^ ]* \([0-9][0-9][0-9]\).*/\1/p' | head -n 1) || probe=
+  case $probe in
+    200 | 404) return 0 ;;
+    *)
+      fail "repository administration permission is required to configure the '$RULESET_NAME' ruleset; the current GitHub credentials cannot administer $repo (probe returned ${probe:-no response}). Re-authenticate with an admin-capable account or token (for example 'gh auth login' as a repository administrator) and rerun. Any CODEOWNERS edit above was made locally; review and commit it, but no GitHub-side configuration was changed. Note: --check works without administration permission."
+      ;;
+  esac
+}
+
+ruleset_status() {
+  if [ -z "$ruleset_id" ]; then
+    printf '%s\n' "missing"
+  elif [ "$current_facts" = "$desired_facts" ]; then
+    printf '%s\n' "matches"
+  else
+    printf '%s\n' "differs"
+  fi
+}
+
+if [ "$mode" = check ]; then
+  status=ok
+  co_final=$(co_owner_tokens)
+  if [ "$co_final" = "$repo_owner" ]; then
+    printf '%s\n' "check: $CODEOWNERS is owned by the repository owner (@$co_final)"
+  else
+    printf '%s\n' "check: $CODEOWNERS owner (@$co_final) does not match the repository owner (@$repo_owner) — run scripts/bootstrap-repository" >&2
+    status=unmet
+  fi
+  case $(ruleset_status) in
+    matches)
+      printf '%s\n' "check: '$RULESET_NAME' ruleset matches the intended configuration"
+      ;;
+    missing)
+      printf '%s\n' "check: no '$RULESET_NAME' ruleset on $repo — run scripts/bootstrap-repository" >&2
+      status=unmet
+      ;;
+    differs)
+      printf '%s\n' "check: '$RULESET_NAME' ruleset differs from the intended configuration (intended vs current):" >&2
+      printf '%s\n' "$desired_facts" > "${TMPDIR:-/tmp}/bootstrap-desired.$$"
+      printf '%s\n' "$current_facts" > "${TMPDIR:-/tmp}/bootstrap-current.$$"
+      diff -u "${TMPDIR:-/tmp}/bootstrap-desired.$$" "${TMPDIR:-/tmp}/bootstrap-current.$$" >&2 || true
+      rm -f "${TMPDIR:-/tmp}/bootstrap-desired.$$" "${TMPDIR:-/tmp}/bootstrap-current.$$"
+      printf '%s\n' "check: rerun scripts/bootstrap-repository to converge it" >&2
+      status=unmet
+      ;;
+  esac
+  if [ "$status" = ok ]; then
+    printf '%s\n' "bootstrap --check: all repository-specific requirements are satisfied"
+    exit 0
+  fi
+  fail "bootstrap --check: repository-specific bootstrap requirements are not satisfied"
+fi
+
+# --------------------------------------------------------------- apply mode
+
+case $(ruleset_status) in
+  matches)
+    printf '%s\n' "bootstrap: '$RULESET_NAME' ruleset already matches the intended configuration (no change)"
+    ;;
+  missing)
+    admin_ok
+    printf '%s\n' "bootstrap: creating '$RULESET_NAME' ruleset on $repo"
+    gh api -X POST "$api" --input - <<EOF >/dev/null || fail "ruleset creation failed; nothing claims success — inspect the API error above"
+$desired_body
+EOF
+    printf '%s\n' "bootstrap: ruleset '$RULESET_NAME' created"
+    ;;
+  differs)
+    admin_ok
+    printf '%s\n' "bootstrap: converging existing '$RULESET_NAME' ruleset ($ruleset_id)"
+    gh api -X PUT "$api/$ruleset_id" --input - <<EOF >/dev/null || fail "ruleset update failed; nothing claims success — inspect the API error above"
+$desired_body
+EOF
+    printf '%s\n' "bootstrap: ruleset '$RULESET_NAME' converged to the intended configuration"
+    ;;
+esac
+
+printf '%s\n' "bootstrap: done for $repo — commit the $CODEOWNERS change if one was made, then run:"
+printf '%s\n' "  scripts/bootstrap-repository --check"

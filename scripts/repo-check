@@ -118,19 +118,52 @@ printf '%s\n' "$required_skill_dirs" | while IFS= read -r skill; do
     fail "capability is empty: .agents/skills/$skill"
 done
 
-[ ! -e state.json ] || fail "root state.json is not part of V1 canonical state"
-[ ! -e CURRENT.md ] || fail "root CURRENT.md is not part of V1 canonical state"
+[ ! -e state.json ] || fail "root state.json is not part of the canonical state model"
+[ ! -e CURRENT.md ] || fail "root CURRENT.md is not part of the canonical state model"
 
 lines=$(wc -l < AGENTS.md | tr -d ' ')
 [ "$lines" -le 200 ] || fail "AGENTS.md exceeds 200-line routing budget ($lines)"
 
 [ -x scripts/verify ] || fail "scripts/verify must be executable"
 [ -x scripts/repo-check ] || fail "scripts/repo-check must be executable"
+[ -x scripts/bootstrap-repository ] || fail "scripts/bootstrap-repository must be executable"
 [ -x .agents/workflows/hitl-loop.template.sh ] ||
   fail "hitl-loop.template.sh must be executable"
 
 sh -n scripts/verify
 sh -n scripts/repo-check
+sh -n scripts/bootstrap-repository
 bash -n .agents/workflows/hitl-loop.template.sh
+
+# Architecture is not version-branded: the current architecture has no version
+# label, and none may quietly return. Vendored upstream content is excluded.
+for doc in AGENTS.md README.md docs/README.md docs/architecture/agent-operating-stack.md; do
+  if grep -nE '\bV[0-9]+\b' "$doc" > "${TMPDIR:-/tmp}/repo-check-version.$$" 2>/dev/null; then
+    cat "${TMPDIR:-/tmp}/repo-check-version.$$" >&2
+    rm -f "${TMPDIR:-/tmp}/repo-check-version.$$"
+    fail "architecture version marker reintroduced in $doc (the architecture is not versioned)"
+  fi
+  rm -f "${TMPDIR:-/tmp}/repo-check-version.$$"
+done
+
+# Source-template owner residue. A repository created from this template keeps
+# the template owner in .github/CODEOWNERS until scripts/bootstrap-repository
+# substitutes the actual owner; deterministic verification fails by design
+# until then. Skipped when the origin remote is absent or not GitHub.
+if remote_url=$(git remote get-url origin 2>/dev/null); then
+  case $remote_url in
+    *github.com[:/]*)
+      origin_owner=$(printf '%s\n' "$remote_url" | sed -E 's#^.*[/:]([^/]+)/[^/]+(\.git)?$#\1#')
+      co_owners=$(
+        sed -n -E 's/^[[:space:]]*[^#[:space:]][^ ]*[[:space:]]+@([A-Za-z0-9-]+)(\/[A-Za-z0-9._-]+)?[[:space:]]*$/\1/p' .github/CODEOWNERS |
+          LC_ALL=C sort -u
+      )
+      [ -n "$co_owners" ] || fail ".github/CODEOWNERS contains no owner rule"
+      if [ "$co_owners" != "$origin_owner" ]; then
+        fail "CODEOWNERS owner (@$co_owners) does not match the repository owner (@$origin_owner); run scripts/bootstrap-repository"
+      fi
+      ;;
+  esac
+fi
 
 printf '%s\n' "repo-check: ok"
