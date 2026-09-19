@@ -20,7 +20,7 @@ durable project record.
 3. ChatGPT creates a bounded GitHub Issue for Arena.
 4. ChatGPT dispatches Arena with the canonical prompt in
    .agents/chatgpt/ARENA-DISPATCH.md.
-5. The Issue selects only the task-specific references/workflow/skills/tools
+5. The Issue selects only the task-specific references/workflow/capabilities
    required for that task.
 6. Arena executes, runs verification, and opens/updates a PR with evidence.
 7. Human + ChatGPT review the actual diff and evidence.

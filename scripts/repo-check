@@ -10,8 +10,8 @@ required_files='
 AGENTS.md
 README.md
 .gitattributes
+.agents/RESEARCH.md
 .agents/chatgpt/AGENTS.md
-.agents/chatgpt/RESEARCH.md
 .agents/chatgpt/ARENA-DISPATCH.md
 .agents/arena/AGENTS.md
 .agents/workflows/research.md
@@ -29,7 +29,6 @@ scripts/verify
 scripts/repo-check
 docs/README.md
 docs/architecture/agent-operating-stack.md
-evals/README.md
 '
 
 printf '%s\n' "$required_files" | while IFS= read -r path; do

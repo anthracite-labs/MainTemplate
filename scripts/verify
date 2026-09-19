@@ -6,12 +6,23 @@ cd "$repo_root"
 
 ./scripts/repo-check
 
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1 &&
+   git rev-parse --verify -q HEAD >/dev/null; then
   empty_tree=$(git hash-object -t tree /dev/null)
-  # Eval fixtures may intentionally contain invalid text (e.g. literal
-  # conflict markers), so they are excluded from the committed-tree
-  # content check. Everything else is checked in full.
-  git diff --check "$empty_tree" HEAD -- . ':(exclude)evals/fixtures'
+
+  # Committed repository integrity.
+  git diff --check "$empty_tree" HEAD
+
+  # The state actually about to be submitted: committed content plus any
+  # staged, unstaged, or new untracked (non-ignored) changes. A scratch index
+  # is used so the real index is never modified.
+  scratch_index=$(mktemp "${TMPDIR:-/tmp}/verify-index.XXXXXX")
+  trap 'rm -f "$scratch_index"' EXIT HUP INT TERM
+  rm -f "$scratch_index"
+
+  GIT_INDEX_FILE="$scratch_index" git read-tree HEAD
+  GIT_INDEX_FILE="$scratch_index" git add -A
+  GIT_INDEX_FILE="$scratch_index" git diff --cached --check HEAD
 fi
 
 printf '%s\n' "verify: ok"

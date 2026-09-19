@@ -1,28 +1,27 @@
 # Research Workflow
 
-Use when the assigned Issue is primarily evidence gathering, technology comparison, or external verification.
+Use when the assigned Issue is primarily evidence gathering, technology
+comparison, or external verification.
+
+The canonical research procedure, evidence hierarchy, evidence labels, and
+freshness rules are owned by the shared standard `.agents/RESEARCH.md`. Follow
+that standard; this workflow adds only what is specific to executing research
+as an assigned task.
 
 ## Procedure
 
-1. Read the Issue question and exact decision it is meant to support.
-2. Check canonical repo truth first.
-3. Identify facts that require fresh external verification.
-4. Start from authoritative upstream sources.
-5. Inspect primary engineering evidence for serious candidates.
-6. Seek independent evidence for consequential reliability/performance/security claims.
-7. Search meaningful counter-evidence and simpler alternatives.
-8. Separate verified facts, upstream claims, inference, judgment, and unknowns.
-9. Record exact dates for changing facts.
-10. Produce only the durable research artifact or Issue evidence requested.
+1. Read the Issue question and the exact decision it is meant to support.
+2. Apply the shared research standard in `.agents/RESEARCH.md`.
+3. Produce only the durable research artifact or Issue evidence requested.
 
-## Rules
+## Task-specific rules
 
-- Popularity is discovery, not proof.
-- Do not preserve unsupported numeric precision.
-- Do not install or adopt a researched component.
+- Do not install or adopt a researched component; research is not adoption.
 - Do not let research silently make the human decision.
-- If the Issue asks for a recommendation, explain the mechanism/gap first and project name second.
+- If the Issue asks for a recommendation, explain the mechanism/gap first and
+  the project name second.
 
 ## Verify
 
-Confirm every consequential claim can be traced to a cited upstream/repo source or is explicitly labeled judgment/unknown.
+Confirm every consequential claim can be traced to a cited upstream/repo source
+or is explicitly labeled judgment/unknown.

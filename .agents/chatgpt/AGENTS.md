@@ -31,7 +31,7 @@ When a new session begins:
 2. Read this file.
 3. Determine what the human is asking now.
 4. Load only the canonical project files, Issues, PRs, ADRs, or research needed for that request.
-5. If external facts may have changed or materially affect a decision, follow `RESEARCH.md`.
+5. If external facts may have changed or materially affect a decision, follow `.agents/RESEARCH.md`.
 6. If Arena work is required, follow `ARENA-DISPATCH.md`.
 
 Do not rely on chat memory when the repository can establish the fact.
@@ -69,7 +69,7 @@ Do not create a second mutable representation of an existing fact.
 
 ## Evidence discipline
 
-Use `RESEARCH.md` for external research.
+Use the shared research standard in `.agents/RESEARCH.md` for external research.
 
 At minimum:
 

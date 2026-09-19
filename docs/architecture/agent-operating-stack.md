@@ -10,53 +10,50 @@ in GitHub Issues, PRs, and Git history.
 
 > Human thinks. ChatGPT guides. Arena executes. GitHub remembers.
 
-- Human owns intent, strategy, product decisions, consequential architecture,
-  priorities, and final judgment.
-- ChatGPT guides: research, comparison, challenge, capability selection, Arena
-  task compilation, and review.
-- Arena executes bounded work and returns verified evidence in a pull request.
-- GitHub/repository is the durable system of record.
-
-Agents are replaceable. Repository truth is continuous.
+Four participants, each with a distinct structural role: the human owns intent
+and judgment, ChatGPT guides and compiles work, Arena executes bounded tasks,
+and GitHub/repository is the durable system of record. Agents are replaceable;
+repository truth is continuous.
 
 ## Authority domains
 
-Authority is not one flat ladder.
+Authority is not one flat ladder. It is divided into distinct domains, each
+answering a different question. Root `AGENTS.md` owns the normative authority
+and conflict rules; this section records only the structural shape those rules
+govern.
 
-- **Project truth** defines what is true or decided: accepted requirements,
-  architecture, ADRs, and other canonical project docs.
-- **Agent operating policy** defines how agents may operate: root and
-  role-specific `AGENTS.md` files.
-- **Task contract** defines what Arena must do now: the assigned GitHub Issue,
-  within project truth and operating policy.
-- **Task procedure/capability** defines how the bounded task is carried out:
-  selected workflows, skills, and tools.
-- **Evidence/reference** verifies or informs work: code, tests, config, research,
-  runtime observations, and agent inference.
+| Domain | Question it answers | Held by |
+|---|---|---|
+| Project truth | What is true or decided? | Accepted requirements, architecture, ADRs, canonical project docs |
+| Agent operating policy | How may agents operate? | Root and role-specific `AGENTS.md` files |
+| Task contract | What must Arena do now? | The assigned GitHub Issue |
+| Task procedure/capability | How is the bounded task carried out? | Selected workflows and any adopted capabilities |
+| Evidence/reference | What verifies or informs the work? | Code, tests, config, research, runtime observation |
 
-An Issue does not silently override accepted project truth or operating policy.
-Consequential architecture changes require explicit human approval and durable
-recording.
+The domains constrain each other rather than forming a single ranking. The
+Issue defines the current task within project truth and operating policy;
+workflows and capabilities are subordinate procedures; evidence informs and
+verifies work but does not silently override governing truth or policy.
+Conflicts within a single domain are surfaced rather than guessed through.
+
+Root `AGENTS.md` states the binding form of these rules.
 
 ## Responsibility boundaries
 
 | Surface | Responsibility |
 |---|---|
 | `/AGENTS.md` | Repository constitution, authority model, map, role routing |
+| `/.agents/RESEARCH.md` | Shared canonical research/evidence standard used by both roles |
 | `/.agents/chatgpt/AGENTS.md` | ChatGPT operating contract |
-| `/.agents/chatgpt/RESEARCH.md` | External research/evidence standard |
 | `/.agents/chatgpt/ARENA-DISPATCH.md` | Arena Issue compiler and canonical external execution prompt |
 | `/.agents/arena/AGENTS.md` | Arena standing execution policy |
 | `/.agents/workflows/` | Reusable task procedures |
-| `/.agents/skills/` | Specialized reusable capability, created only when adopted |
 | `docs/` | Durable project truth and durable supporting evidence |
 | GitHub Issue | One bounded task contract |
 | PR | Implementation result and verification evidence |
 | `scripts/` | Deterministic repo-owned procedures |
 | `.gitattributes` | Path-aware Git content/whitespace policy used by verification |
 | `.github/` | GitHub task/review/ownership/CI surfaces |
-| `evals/` | Evaluation methodology/fixtures for the agent operating system |
-| `tools/` | Approved external tool adapters, only when adopted |
 
 ## Dispatch and execution
 
@@ -73,7 +70,7 @@ Conceptually:
 4. The external Arena prompt loads standing operating policy before the assigned
    Issue.
 5. The Issue selects task-specific references, a workflow when applicable, and
-   any deliberately approved skills/tools.
+   any deliberately approved capabilities.
 6. Arena executes, verifies, inspects the final diff, and returns PR evidence.
 7. Human + ChatGPT review the actual diff and evidence before merge.
 
@@ -82,69 +79,45 @@ navigation.
 
 ## Progressive disclosure
 
-Agents load only what the task requires.
-
-- Root instructions route rather than duplicate deeper procedures.
-- Task-specific references live in the Issue.
-- Workflows load only when selected.
-- Skills/tools are not active merely because they exist.
-- The repository should not be read wholesale by default.
+The instruction set is structured as a routing tree rather than a single
+prompt: root constitution routes to role policy, role policy routes to the task
+contract, and the task contract names the references and procedures that apply.
+Normative loading rules are owned by root and role `AGENTS.md`.
 
 ## Verification
 
-`scripts/verify` is the stable repository verification entry point.
-
-`scripts/repo-check` enforces repository operating invariants. GitHub Actions
+`scripts/verify` is the single stable repository verification entry point. It
+delegates repository operating invariants to `scripts/repo-check`, then runs
+content checks over the current committed `HEAD` tree and over the
+submit-ready worktree/index state when that differs from `HEAD`. GitHub Actions
 runs `scripts/verify` on pull requests and pushes to `main`.
 
-Prefer deterministic verification over agent self-report wherever practical.
+## Accepted architectural decisions
 
-## State and recovery
+These record what was chosen and why. Root and role policy govern any future
+change to them.
 
-V1 deliberately has no canonical `state.json` or `CURRENT.md`.
+**No canonical state store.** V1 has no `state.json` or `CURRENT.md`.
+Operational state is reconstructed from Issues, PRs, branches, Git history,
+accepted docs/ADRs, and current implementation evidence, because GitHub already
+stores that state durably and a second store would become a competing mutable
+copy. `scripts/repo-check` enforces the absence of both files. Root policy
+governs any future adoption of state machinery.
 
-Operational state is recovered from:
+**Smallest coherent mechanism.** The stack ships only surfaces with a
+demonstrated current use, which is why no skills, tool adapters, or eval
+machinery exist in V1. The repository map therefore describes the actual
+filesystem rather than reserved names. Root policy governs any future
+capability adoption.
 
-- Issues;
-- PRs;
-- branches;
-- Git history;
-- accepted docs/ADRs;
-- current implementation evidence.
+**Deterministic verification over self-report.** Completion is evidenced by a
+repo-owned script any participant can rerun. `scripts/verify` is the single
+entry point, which keeps local execution and CI on the same check.
 
-Chat/model memory, sandboxes, external indexes, vector stores, and proprietary
-memory services are not canonical project state.
-
-Add dedicated state machinery only if measured use demonstrates a recovery
-failure Git/GitHub cannot solve cleanly.
-
-## Capability policy
-
-Start with the smallest coherent mechanism.
-
-A workflow, skill, or tool is active only when the task selects it or repository
-policy makes it universally required.
-
-Do not add frameworks, dependencies, memory systems, review systems, security
-tools, or external services merely because they exist. New capabilities require
-a concrete demonstrated gap, deliberate human + ChatGPT selection, and a
-removal path.
-
-## V1 completion state
-
-The initial repository operating foundation is complete:
-
-- root constitution and routing;
-- ChatGPT operating/research/dispatch contracts;
-- Arena operating contract;
-- core workflows;
-- GitHub Issue/PR/CODEOWNERS/CI surfaces;
-- deterministic verification;
-- docs namespace;
-- eval methodology.
-
-Future skills/tools are **demand-driven extensions**, not an unfinished V1
-phase or completion gate.
+**One canonical owner per mutable rule.** Operating policy lives in `AGENTS.md`
+files; reusable procedure lives in shared standards and workflows; task detail
+lives in the Issue; this document records structure and rationale. The external
+Arena execution prompt is owned solely by `/.agents/chatgpt/ARENA-DISPATCH.md`.
 
 External GitHub administration such as branch protection/rulesets is separate
-from this repository architecture and should be tracked as operational work.
+from this repository architecture and is tracked as operational work.
