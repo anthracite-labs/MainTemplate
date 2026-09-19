@@ -1,8 +1,8 @@
 # Implementation Workflow
 
 Use for a bounded code/config/documentation change whose intent is already
-decided. This remains MainTemplate's top-level bounded execution procedure; it
-is not replaced by an imported wrapper.
+decided. This remains the repository's top-level bounded execution procedure;
+adopted capabilities do not replace it.
 
 ## Procedure
 
@@ -13,11 +13,9 @@ is not replaced by an imported wrapper.
 3. Extract explicit domain/edge semantics: boundaries, ordering, nullability,
    dates/timezones, rounding, precedence, compatibility, error behavior.
 4. Identify the smallest coherent change surface.
-5. Where selected and relevant, apply the subordinate capability:
-   - `.agents/skills/tdd/SKILL.md` for an intentional red → green loop;
-   - `.agents/skills/codebase-design/SKILL.md` for module/interface/seam
-     design;
-   - other exact Issue-selected capability paths only.
+5. Where the Issue selected a capability and it is relevant, apply it as a
+   subordinate procedure at its exact repo-relative path, reading its
+   `SKILL.md` first.
 6. Implement without unrelated refactoring.
 7. Add or update tests for changed behavior and important edge cases.
 8. Update durable docs/ADR only when project truth changed.

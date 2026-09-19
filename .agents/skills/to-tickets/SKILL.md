@@ -7,10 +7,10 @@ tracer-bullet vertical slices, each declaring the tickets that **block** it,
 published as GitHub Issues.
 
 A Human + ChatGPT planning capability. This fills the decomposition gap
-between planning and dispatch: MainTemplate requires every Arena task to be
-bounded enough for one execution/PR, and this capability is how large settled
-work is cut into such bounds. GitHub Issues are the only tracker; there is no
-local issue-tracker architecture and no secondary ticket store.
+between planning and dispatch: the operating model requires every Arena task
+to be bounded enough for one execution/PR, and this capability is how large
+settled work is cut into such bounds. GitHub Issues are the only tracker;
+there is no local issue-tracker architecture and no secondary ticket store.
 
 ## Process
 

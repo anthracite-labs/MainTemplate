@@ -2,8 +2,8 @@
 
 Adapted from mattpocock/skills (MIT) — see [../PROVENANCE.md](../PROVENANCE.md).
 
-Format reference for generated projects that need a domain glossary. Created
-lazily, only when real project content requires it (see [SKILL.md](SKILL.md)).
+Format reference for a project that needs a domain glossary. Created lazily,
+only when real project content requires it (see [SKILL.md](SKILL.md)).
 
 ## Structure
 

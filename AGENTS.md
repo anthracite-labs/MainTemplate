@@ -1,9 +1,10 @@
-# AGENTS.md — MainTemplate Repository Constitution
+# AGENTS.md — Repository Constitution
 
-This file is the root operating map for MainTemplate: a constitution plus a map,
-not a handbook. Load deeper instructions only when a task requires them.
+This file is the root operating map for this repository: a constitution plus a
+map, not a handbook. Load deeper instructions only when a task requires them.
 
-The current V1 operating architecture is `docs/architecture/agent-operating-stack.md`.
+The current accepted operating architecture is
+`docs/architecture/agent-operating-stack.md`.
 
 ## Operating model
 
@@ -73,8 +74,8 @@ Conflict rules:
 
 ### Durable project truth
 
-- `docs/architecture/agent-operating-stack.md` — current V1 operating-stack
-  architecture.
+- `docs/architecture/agent-operating-stack.md` — the current accepted
+  operating-stack architecture.
 - `docs/` — other project truth/supporting evidence; create real subdirectories
   only when real content requires them.
 - Issues/PRs/branches/Git history — task state, execution history, review
@@ -137,15 +138,29 @@ Routine reversible implementation details should be resolved autonomously.
 
 ## Capability rule
 
-A workflow, skill, or tool is active only when the assigned task selects it or
-repo policy makes it universally required, such as `scripts/verify`.
+Activation has exactly three paths; this section owns the general rule and
+`.agents/skills/README.md` owns the detailed catalog: names, purposes, and
+role routing.
 
-The governed capability surface is `.agents/skills/`; its catalog owns the
-current list, purposes, and planning/execution routing. A selected Issue names
-the exact repo-relative capability path under "Selected skills / tools" and
-why it applies. The agent then reads/uses it as a subordinate procedure.
-Capabilities are never activated just because they exist, and no capability may
+- **Planning selection** — before an Arena execution Issue exists, Human +
+  ChatGPT may deliberately select a planning/guidance capability from the
+  catalog to think, decide, map, specify, or compile work. Selection is
+  deliberate and uses the minimum capability needed, at its exact
+  repo-relative path. The capability remains subordinate to root and ChatGPT
+  policy; it may produce durable decisions, specs, maps, or Arena Issues. No
+  Issue is required for this path.
+- **Execution selection** — Arena execution capabilities are active only when
+  the assigned bounded Issue names the exact repo-relative path and why the
+  capability applies. Arena never self-activates a capability because it
+  exists.
+- **Policy-required procedure** — governing policy may make a procedure
+  universally required. `scripts/verify` is the current example; it is a
+  repository script, not a skill.
+
+A capability's mere existence never activates it, and no capability may
 override root policy, role policy, accepted project truth, or the Issue.
+Role files point to these rules and the catalog; they never invent competing
+activation systems.
 
 Adding/removing a capability requires a deliberate human + ChatGPT decision,
 actual adopted content (never placeholders), an update to the catalog and
@@ -155,7 +170,7 @@ tools merely because they exist.
 
 ## State/memory
 
-V1 has no dedicated canonical `state.json` or `CURRENT.md`.
+This repository has no dedicated canonical `state.json` or `CURRENT.md`.
 
 Recover operational state from Issues, PRs, branches, Git history, accepted
 docs/ADRs, and current implementation evidence. Add dedicated state machinery

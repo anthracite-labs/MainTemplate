@@ -1,12 +1,10 @@
-# MainTemplate Agent Operating Stack — V1
+# Agent Operating Stack
 
-Status: **current accepted V1 architecture**
+Status: **current accepted architecture**
 
-This document is the durable repository record for the MainTemplate agent
-operating stack. Historical build decisions and implementation history remain
-in GitHub Issues, PRs, and Git history. Root `AGENTS.md` owns the normative
-policy and conflict rules; this document records the accepted structural shape
-and rationale.
+This document is the durable repository record of this repository's agent
+operating stack. Root `AGENTS.md` owns the normative policy and conflict
+rules; this document records the accepted structural shape and rationale.
 
 ## Operating model
 
@@ -58,11 +56,15 @@ Conflicts within a single domain are surfaced rather than guessed through.
 
 ## Capability architecture
 
-MainTemplate governs. Specialized skills execute beneath it. The catalog
+Root policy governs. Specialized skills execute beneath it. The catalog
 (`/.agents/skills/README.md`) is the single list of adopted capabilities; it
-contains no authority rules and activates nothing by itself. An Issue selects a
-capability by exact repo-relative path and states why it applies. The agent then
-reads it as a subordinate procedure. No proprietary invocation adapter,
+contains no authority rules and activates nothing by itself. Activation
+follows the three paths owned by root `/AGENTS.md` ("Capability rule"):
+planning capabilities are deliberately selected by Human + ChatGPT before an
+Arena Issue exists; execution capabilities are selected by the assigned Issue
+by exact repo-relative path with the reason stated; universally required
+procedures come from governing policy. The agent then reads the selected
+capability as a subordinate procedure. No proprietary invocation adapter,
 installer, second router, or runtime upstream dependency is required.
 
 The catalog's role routing is intentionally not an authority ladder. For the
@@ -70,9 +72,9 @@ current adopted capability names, purposes, and planning/execution routing,
 consult `/.agents/skills/README.md`; do not duplicate that mutable inventory in
 standing policy or architecture documents.
 
-Capabilities exist because current use earned adoption; every capability
-directory contains real content, and `scripts/repo-check` validates the exact
-current surface. No placeholder/future capability directories exist. Adding or
+Capabilities are a deliberate, finite surface: every capability directory
+contains real content, and `scripts/repo-check` validates the exact current
+surface. No placeholder/future capability directories exist. Adding or
 removing one is a deliberate human + ChatGPT decision with catalog, provenance,
 and deterministic-check updates in the same change.
 
@@ -85,38 +87,36 @@ and deterministic-check updates in the same change.
   fidelity, Engineering quality, and Risk/evidence independent. There is no
   duplicate review skill.
 - Research is owned only by `/.agents/RESEARCH.md`; the research workflow adds
-  task execution context but no second standard. Matt Pocock's research skill
-  was deliberately not adopted.
+  task execution context but no second standard.
 - Security routing (when/why security work is required) is owned by
   `/.agents/workflows/security.md`. Cloudflare `security-audit` owns its deep
   specialized procedure only when selected; the workflow does not duplicate it.
-- MainTemplate `implement.md` remains the top-level bounded execution workflow;
-  selected execution skills can be subordinate to it.
+- `implement.md` remains the top-level bounded execution workflow; selected
+  execution skills can be subordinate to it.
 
 ### Planning before execution
 
 Conventional bounded work goes directly to an Arena Issue. For larger work,
-Human + ChatGPT select planning capabilities only when their additional
-structure is earned:
+Human + ChatGPT deliberately select planning capabilities from the catalog
+(`/.agents/skills/README.md`) only when their additional structure is earned:
 
 ```text
 large ambiguous route
-  → wayfinder (GitHub map + decision frontier)
-  → to-spec (when substantial feature meaning needs durable synthesis)
-  → to-tickets (when several bounded vertical slices are required)
+  → wayfinder (durable GitHub map + decision frontier)
+  → to-spec (durable feature spec when synthesis is justified)
+  → to-tickets (bounded vertical slices when decomposition is needed)
   → bounded Arena Issues
   → execution + PR evidence
 ```
 
 Wayfinder represents unresolved consequential questions as decision tickets and
 stops when the route is clear. `to-tickets` produces tracer-bullet vertical
-slices, records real blocking edges, and uses expand → migrate → contract for
-wide mechanical refactors. GitHub remains the only durable tracker; there is no
-secondary local issue tracker. Prototypes answer a specific design question and
-are temporary by default; their conclusion, not their code, becomes durable
-truth unless a task explicitly retains the artifact. Architecture survey work
-proposes candidates only; human-approved durable architecture precedes Arena
-execution.
+slices and records real blocking edges. GitHub remains the only durable
+tracker; there is no secondary local issue tracker. Prototypes answer a
+specific design question and are temporary by default; their conclusion, not
+their code, becomes durable truth unless a task explicitly retains the
+artifact. Architecture survey work proposes candidates only; human-approved
+durable architecture precedes Arena execution.
 
 ## Dispatch and execution
 
@@ -168,21 +168,22 @@ claims stay `needs_validation` with an exact safe validation plan.
 
 ## Accepted architectural decisions
 
-**No canonical state store.** V1 has no `state.json` or `CURRENT.md`.
-Operational state is reconstructed from Issues, PRs, branches, Git history,
-accepted docs/ADRs, and current implementation evidence, because GitHub already
-stores that state durably and a second store would become a competing mutable
-copy. `scripts/repo-check` enforces the absence of both files.
+**No canonical state store.** This repository has no `state.json` or
+`CURRENT.md`. Operational state is reconstructed from Issues, PRs, branches,
+Git history, accepted docs/ADRs, and current implementation evidence, because
+GitHub already stores that state durably and a second store would become a
+competing mutable copy. `scripts/repo-check` enforces the absence of both
+files.
 
-**Selective governed capability surface.** V1 originally contained no skills
-because no capability had earned adoption. A deliberate adoption pass created an
-actual, finite surface under `/.agents/skills/`, with exact upstream provenance
-and MIT notices. It did not install an upstream operating system: MainTemplate
-retains ownership of roles, authority conflicts, project truth, durable GitHub
-state, boot sequence, bounded Issue contract, capability selection, escalation,
-verification, and final human + ChatGPT judgment. The catalog and provenance
-record are the canonical current surface; imports are self-contained, not
-runtime dependencies.
+**Selective governed capability surface.** The capability surface under
+`/.agents/skills/` is finite and deliberate: every capability directory
+contains real adopted content with exact upstream provenance and MIT notices,
+and `scripts/repo-check` validates the exact current surface. This operating
+model retains ownership of roles, authority conflicts, project truth, durable
+GitHub state, boot sequence, bounded Issue contract, capability selection,
+escalation, verification, and final human + ChatGPT judgment; adopted skills
+execute beneath it. The catalog and provenance record are the canonical
+current surface; imports are self-contained, not runtime dependencies.
 
 **Deterministic verification over self-report.** Completion is evidenced by a
 repo-owned script any participant can rerun. `scripts/verify` is the single
@@ -193,5 +194,7 @@ files; reusable procedure lives in shared standards and workflows; task detail
 lives in the Issue; this document records structure and rationale. The external
 Arena execution prompt is owned solely by `/.agents/chatgpt/ARENA-DISPATCH.md`.
 
-External GitHub administration such as branch protection/rulesets is separate
-from this repository architecture and is tracked as operational work.
+GitHub-side configuration such as branch protection/rulesets is
+repository-specific, not repository architecture:
+`scripts/bootstrap-repository` establishes and verifies it deliberately in a
+repository created from this template.

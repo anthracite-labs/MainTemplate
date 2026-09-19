@@ -14,12 +14,12 @@ vocabulary only when the assigned Issue selects it.
 
 ## Where the surfaces live
 
-The `CONTEXT.md` / `CONTEXT-MAP.md` / ADR surfaces belong to **generated
-projects**, created lazily when real project content requires them. They are
-not created in MainTemplate itself: this template repository deliberately has
-no `CONTEXT.md`, no `CONTEXT-MAP.md`, and no `docs/adr/` tree, and adopting
-this capability does not change that. `docs/README.md` owns the truth
-discipline for this repository; ADRs in generated projects follow that same
+The `CONTEXT.md` / `CONTEXT-MAP.md` / ADR surfaces belong to the project
+being modeled — the repository this operating model governs — and are created
+lazily, only when real content requires them. A repository may deliberately
+have no `CONTEXT.md`, no `CONTEXT-MAP.md`, and no `docs/adr/` tree, and
+adopting this capability does not change that: never pre-populate empty
+scaffolding. `docs/README.md` owns the truth discipline; ADRs follow that same
 discipline.
 
 Create files lazily: only when you have something to write. If no `CONTEXT.md`

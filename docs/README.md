@@ -7,8 +7,8 @@ not pre-populate empty documentation trees.
 
 ## Current structure
 
-- `architecture/agent-operating-stack.md` — current accepted V1 operating-stack
-  architecture.
+- `architecture/agent-operating-stack.md` — the current accepted operating-
+  stack architecture.
 
 ## Truth discipline
 

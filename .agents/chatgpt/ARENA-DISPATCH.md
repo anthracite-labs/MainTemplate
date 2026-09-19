@@ -30,14 +30,10 @@ Confirm:
 - success can be verified.
 
 If not, resolve the missing decision or split the task first. Do not compress
-substantial feature meaning into an Arena Issue: use selected planning
-capabilities first when their shape applies:
-
-- large ambiguous route → `.agents/skills/wayfinder/SKILL.md`;
-- substantial settled feature → `.agents/skills/to-spec/SKILL.md`;
-- multi-PR settled work → `.agents/skills/to-tickets/SKILL.md`.
-
-Do not send unresolved consequential product/architecture decisions to Arena.
+substantial feature meaning into an Arena Issue: when planning depth is needed
+before dispatch, consult `.agents/skills/README.md` and deliberately select
+the minimum planning capability whose documented trigger matches. Do not send
+unresolved consequential product/architecture decisions to Arena.
 
 ## Issue construction
 
@@ -146,20 +142,14 @@ duplicating it here.
 
 For each task, choose deliberately:
 
-- workflow, or None when no reusable workflow applies;
-- deterministic scripts/checks;
-- only the exact adopted skill paths required by the task, or None;
-- an explanation of why each selected skill applies.
+- the primary workflow, or None when no reusable workflow applies;
+- deterministic repository scripts and checks;
+- only the exact adopted capability paths the task needs, or None — each with
+  a stated reason why the primary workflow alone is insufficient.
 
 The catalog at `.agents/skills/README.md` is the sole current capability list
-and role-routing reference. It is not a mandate to load every capability. No
-skill is selected merely because it exists; selected skills remain subordinate
-to project truth, policy, and the Issue.
-
-For the current adopted capability names, purposes, and role routing, consult
-`.agents/skills/README.md`. Select only the exact paths the task needs; no
-implementation capability is a default bundle. The primary workflow still owns
-the task, and a selected capability remains subordinate to the Issue.
+and role-routing reference. No skill is selected merely because it exists;
+selected skills remain subordinate to project truth, policy, and the Issue.
 
 ## Scope test
 

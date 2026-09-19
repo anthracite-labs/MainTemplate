@@ -10,7 +10,7 @@ network access to the upstream repositories.
 
 ## Upstream sources at exact reviewed revisions
 
-No newer upstream revision is adopted in this pass; adopting one requires a
+No newer upstream revision is adopted; adopting one requires a
 fresh deliberate decision.
 
 | Upstream repository | Reviewed commit | License |
@@ -26,24 +26,24 @@ Each capability below was adapted, not copied verbatim. Material adaptations
 shared by all of them:
 
 - Skill-tool / plugin invocation (`Call the Skill tool with "X"`,
-  `disable-model-invocation` frontmatter, router skills) replaced by
-  MainTemplate's repo-native capability model: the assigned Issue or governing
-  policy selects a capability by its repo-relative path; the agent reads the
-  capability as a subordinate procedure.
+  `disable-model-invocation` frontmatter, router skills) replaced by this
+  repository's native capability model: a capability is activated by deliberate
+  Human + ChatGPT planning selection, by the assigned Issue, or by governing
+  policy, and is read as a subordinate procedure.
 - References to Matt's own operating infrastructure
   (`/setup-matt-pocock-skills`, `docs/agents/issue-tracker.md`, `.scratch/`
   local trackers, `ready-for-agent` triage labels, `CONTEXT.md` as an assumed
-  repo file) replaced by MainTemplate equivalents: GitHub Issues, the Arena
+  repo file) replaced by this repository's equivalents: GitHub Issues, the Arena
   task contract in `.github/ISSUE_TEMPLATE/arena-task.md`, and
   `.agents/RESEARCH.md` as the single canonical research standard.
 - Role/authority rules are never copied into skills; root `AGENTS.md` remains
   the sole owner of the authority model.
 
-| Adopted capability | Upstream path(s) | Material MainTemplate adaptations |
+| Adopted capability | Upstream path(s) | Material adaptations |
 |---|---|---|
-| `.agents/skills/writing-for-agents/` | `skills/productivity/writing-for-agents/{SKILL.md,SKILL-MECHANICS.md}` | SKILL-MECHANICS rewritten from Claude-plugin invocation mechanics to MainTemplate skill mechanics (directory shape, selection, catalog, provenance). Subordinate to `/AGENTS.md`. |
+| `.agents/skills/writing-for-agents/` | `skills/productivity/writing-for-agents/{SKILL.md,SKILL-MECHANICS.md}` | SKILL-MECHANICS rewritten from Claude-plugin invocation mechanics to this repository's skill mechanics (directory shape, selection, catalog, provenance). Subordinate to `/AGENTS.md`. |
 | `.agents/skills/grilling/` | `skills/productivity/grilling/SKILL.md` | Explicitly a selected Human+ChatGPT capability, never universal; sub-agent dispatch made environment-neutral. |
-| `.agents/skills/domain-modeling/` | `skills/engineering/domain-modeling/{SKILL.md,CONTEXT-FORMAT.md,ADR-FORMAT.md}` | Scoped to generated projects: `CONTEXT.md`/`CONTEXT-MAP.md`/ADR surfaces are created lazily there, never as empty placeholders in MainTemplate itself. ADR three-part criterion preserved. |
+| `.agents/skills/domain-modeling/` | `skills/engineering/domain-modeling/{SKILL.md,CONTEXT-FORMAT.md,ADR-FORMAT.md}` | Scoped to the project being modeled: `CONTEXT.md`/`CONTEXT-MAP.md`/ADR surfaces are created lazily, never as empty placeholders. ADR three-part criterion preserved. |
 | `.agents/skills/codebase-design/` | `skills/engineering/codebase-design/{SKILL.md,DEEPENING.md,DESIGN-IT-TWICE.md}` | Design vocabulary/procedure only; accepted project architecture/ADRs win on conflict. Parallel sub-agents made environment-neutral. |
 | `.agents/skills/tdd/` | `skills/engineering/tdd/{SKILL.md,tests.md,mocking.md}` | Seam-confirmation rule adapted: no execution interruption for seams already decided by the Issue/spec or ordinary reversible choices; escalate only for consequential architecture seams. Optional/selectable capability. |
 | `.agents/skills/to-spec/` | `skills/engineering/to-spec/SKILL.md` | Publishes as a GitHub feature-spec Issue; user-story bar changed from "extremely extensive" to "every story distinguishing meaningful behavior, an important boundary, or an important edge case"; references canonical truth instead of duplicating ADRs/docs. |
@@ -52,8 +52,8 @@ shared by all of them:
 | `.agents/skills/prototype/` | `skills/engineering/prototype/{SKILL.md,LOGIC.md,UI.md}` | Retention inverted: prototypes are temporary by default; conclusions are recorded in the Issue/accepted project truth; prototype code is deleted before completion unless the task contract explicitly requires retention; no permanent `prototype/*` branches by default; no CDN dependencies. |
 | `.agents/skills/improve-codebase-architecture/` | `skills/engineering/improve-codebase-architecture/{SKILL.md,HTML-REPORT.md}` | HTML-REPORT.md replaced by REPORT-FORMAT.md: portable Markdown report is the default; self-contained HTML without CDN dependencies only on request. Exploration proposes candidates; consequential architecture remains human-approved and durably recorded before Arena executes. |
 | `.agents/skills/resolving-merge-conflicts/` | `skills/engineering/resolving-merge-conflicts/SKILL.md` | "Never `--abort`" replaced: abort/escalate when resolution would require inventing product intent, silently choosing between conflicting accepted architecture, making a consequential decision not authorized by the Issue, or unauthorized destructive history behavior. Routine conflicts still completed autonomously. |
-| `.agents/workflows/debug.md` (replacement, not a skill) | `skills/engineering/diagnosing-bugs/{SKILL.md,scripts/hitl-loop.template.sh}` | Six-phase diagnosis procedure refactored into MainTemplate's canonical debug workflow; HITL template adopted as `.agents/workflows/hitl-loop.template.sh`. MainTemplate fallback retained: reproduce, or establish the strongest available failing evidence and record what is missing. |
-| `.agents/workflows/review.md` (rebuild, not a skill) | `skills/engineering/code-review/SKILL.md` | Rebuilt as three independent review axes (spec fidelity / engineering quality / risk-evidence) with the Fowler smell baseline as overridable judgment heuristics; MainTemplate finding standard and merge-authority rules preserved. |
+| `.agents/workflows/debug.md` (replacement, not a skill) | `skills/engineering/diagnosing-bugs/{SKILL.md,scripts/hitl-loop.template.sh}` | Six-phase diagnosis procedure refactored into this repository's canonical debug workflow; HITL template adopted as `.agents/workflows/hitl-loop.template.sh`. The strongest-available-failing-evidence fallback is retained: reproduce, or establish the strongest available failing evidence and record what is missing. |
+| `.agents/workflows/review.md` (rebuild, not a skill) | `skills/engineering/code-review/SKILL.md` | Rebuilt as three independent review axes (spec fidelity / engineering quality / risk-evidence) with the Fowler smell baseline as overridable judgment heuristics; this repository's finding standard and merge-authority rules apply. |
 
 ### From `cloudflare/security-audit-skill` (complete, unmodified)
 
@@ -72,8 +72,8 @@ companions (`AI-AND-LLM.md`, `CLIENT-SIDE.md`, `CLOUD-AND-DEPLOYMENT.md`,
 The upstream skill is already agent-neutral, so no content changes were made.
 The upstream repository-root `LICENSE` is included inside the skill directory
 so the MIT notice travels with the copy. The upstream `README.md`
-(installation via `skills.sh`) was intentionally not copied: MainTemplate
-activates capabilities by Issue/policy selection, not by installer.
+(installation via `skills.sh`) was intentionally not copied: capabilities are
+activated by deliberate selection, not by installer.
 
 Ownership boundary: `.agents/workflows/security.md` owns when and why security
 work happens; this skill owns the specialized deep-audit procedure only when
@@ -82,14 +82,14 @@ execution requires the full OS-enforced sandbox controls it lists, and where
 they cannot be enforced the run stays in source/guidance mode with unresolved
 candidates kept as `needs_validation`.
 
-## Deliberately not adopted (this pass)
+## Deliberately not adopted
 
 From `mattpocock/skills`: `ask-matt`, `setup-matt-pocock-skills`, `implement`,
 `research`, `triage`, `wizard`, `grill-me`, `grill-with-docs`, `handoff`,
 `teach`, `to-questionnaire`, `wait-what`, all `skills/misc/` repo-specific
 skills, all `skills/misc/git-guardrails-claude-code/` Claude-specific
 guardrails, and everything under `skills/in-progress/`. Reasons: redundant
-with a stronger MainTemplate owner (implement, research), tied to Matt's own
+with a stronger owner in this repository (implement, research), tied to Matt's own
 operating system (ask-matt, setup, triage labels), too project-specific,
 premature for a generic template, or explicitly upstream in-progress. This is
 not a judgment that each is weak.

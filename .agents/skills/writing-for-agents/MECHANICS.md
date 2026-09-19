@@ -1,11 +1,11 @@
-# MainTemplate Skill Mechanics
+# Skill Mechanics
 
 The skill-specific branch of [writing-for-agents](SKILL.md): what changes when
-the document is a MainTemplate capability under `.agents/skills/`. Everything
-else about writing it is the universal reference in `SKILL.md`.
+the document is a capability under `.agents/skills/`. Everything else about
+writing it is the universal reference in `SKILL.md`.
 
 This replaces the upstream plugin mechanics (frontmatter, model-invocation
-flags, router skills) with MainTemplate's repo-native capability model. See
+flags, router skills) with this repository's native capability model. See
 [../PROVENANCE.md](../PROVENANCE.md).
 
 ## Directory shape
@@ -27,20 +27,28 @@ live file keeps one file: split only when the cut earns it.
 
 `SKILL.md` opens with a short identity block: title, a one-line purpose stating
 what the capability is and when it is selected, and a provenance pointer when
-the material is adopted. No YAML frontmatter and no invocation flags:
-activation is not encoded in the file, it is encoded in the selection.
+the material is adopted. Capabilities written for this repository carry no
+YAML frontmatter and no invocation flags: activation is not encoded in the
+file, it is encoded in the selection. (Adopted upstream capabilities are kept
+verbatim per [../PROVENANCE.md](../PROVENANCE.md) and may retain their
+upstream packaging.)
 
 ## Invocation
 
-MainTemplate has exactly one activation mechanism, owned by root `/AGENTS.md`
-("Capability rule"):
+Root `/AGENTS.md` ("Capability rule") owns activation; it has exactly three
+paths, and a capability's existence alone never activates it:
 
+- **Planning selection**: before any Arena Issue exists, Human + ChatGPT may
+  deliberately select a planning/guidance capability from the catalog —
+  minimum capability needed, exact capability path, subordinate to root and
+  ChatGPT policy, able to produce durable decisions, specs, maps, or Arena
+  Issues.
 - **Issue-selected**: the assigned GitHub Issue names the capability by
   repo-relative path under its "Selected skills / tools" section. The Issue
   line is the capability's context pointer — the pointer-writing rules in
   `SKILL.md` apply to it in full. A path alone is a weak pointer; the Issue
   says in a clause why this capability, for this task.
-- **Policy-required**: governing policy makes a capability universally
+- **Policy-required**: governing policy makes a procedure universally
   required. None currently are; `scripts/verify` is the only universally
   required procedure and it is a script, not a skill.
 

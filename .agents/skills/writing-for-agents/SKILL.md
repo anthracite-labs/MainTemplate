@@ -13,7 +13,7 @@ overrides root policy, role policy, or the assigned Issue; where this file and
 governing policy disagree, governing policy wins and the disagreement is a bug
 in this file.
 
-When the document you're writing is a MainTemplate skill, read
+When the document you're writing is a skill under `.agents/skills/`, read
 [MECHANICS.md](MECHANICS.md) for the skill-specific branch: directory shape,
 selection, catalog, and provenance.
 
@@ -54,8 +54,8 @@ Every document and pointer you add spends one of two budgets:
 
 Material reached only through a pointer escapes context load at the price of
 the pointer's own line; material with no pointer at all rides entirely on
-cognitive load. MainTemplate's progressive-disclosure rule in `/AGENTS.md` is
-this budget expressed as policy.
+cognitive load. The progressive-disclosure rule in `/AGENTS.md` is this
+budget expressed as policy.
 
 ## Information hierarchy
 
@@ -116,16 +116,16 @@ agent the work is done. Two properties make it a lever:
   the rush, hide the later steps by splitting the sequence. Hiding only works
   across a real context boundary (a hand-off or an independent review context;
   an inline call leaves the later steps in context and clears nothing). This is
-  why MainTemplate's review workflow separates its axes into independent
-  contexts where the environment supports it.
+  why the review workflow separates its axes into independent contexts where
+  the environment supports it.
 - **Demand**: how much it requires. "Every modified model accounted for"
   forces thorough work where "produce a change list" does not. Demand drives
   **legwork** (the digging the agent does within the work, latent in the
   wording rather than written as its own step), and it is not step-bound:
   "every rule applied" binds a body of flat reference just as "every step done"
   binds a sequence, which is how an all-reference document still carries an
-  exhaustiveness bar. MainTemplate's acceptance-criteria evidence rule is this
-  bar enforced at the task level.
+  exhaustiveness bar. The acceptance-criteria evidence rule is this bar
+  enforced at the task level.
 
 The strongest criteria are both checkable and exhaustive.
 
@@ -178,9 +178,9 @@ half-reads as an instruction to do the thing. Prompt the **positive**: state
 the target behaviour ("write one-line comments") so the banned one is never
 spoken. A prohibition earns its place only as a hard guardrail you cannot
 phrase positively; even then, pair it with the positive target so attention
-lands on what to do. MainTemplate keeps explicit "Do not" sections only for
-hard guardrails (authority conflicts, destructive actions, scope expansion),
-which is the earned case.
+lands on what to do. Standing documents in this operating model keep explicit
+"Do not" sections only for hard guardrails (authority conflicts, destructive
+actions, scope expansion), which is the earned case.
 
 ## Pruning
 
@@ -189,8 +189,8 @@ which is the earned case.
   meaning in more than one place) costs maintenance and tokens, and inflates a
   meaning's prominence on the ladder past its real rank. (The accidental
   inverse of a leading word, which repeats a token on purpose, never the
-  meaning.) This is MainTemplate's "one canonical owner per mutable rule"
-  applied at the sentence level.
+  meaning.) This is the "one canonical owner per mutable rule" applied at the
+  sentence level.
 - The **environment** is a source of truth too (`scripts/verify`,
   `scripts/repo-check`, `.gitattributes`, the directory layout, CI config), and
   a document that restates it is a **cache**: a copy of a lookup, earning its
