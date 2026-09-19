@@ -20,6 +20,22 @@ Closes #
 
 <!-- Map evidence to the assigned Issue criteria. -->
 
+## Independent review evidence
+
+<!-- Keep these concerns separate; do not collapse them into one score. -->
+
+### Spec / task fidelity
+
+<!-- Missing/partial/wrong requirements, scope creep, closed decisions, or no findings. -->
+
+### Engineering quality
+
+<!-- Standards, design/locality/seams, duplication/complexity judgment, or no findings. -->
+
+### Risk / evidence
+
+<!-- Edge/security/destructive behavior, verification quality, drift, residual risk, or no findings. -->
+
 ## Architecture / policy
 
 - [ ] No accepted project truth or operating policy was silently overridden.

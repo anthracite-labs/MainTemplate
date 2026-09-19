@@ -60,38 +60,42 @@ Conflict rules:
 
 ### Agent operating layer
 
-- .agents/RESEARCH.md — shared canonical research/evidence standard.
-- .agents/chatgpt/AGENTS.md — ChatGPT's role with the human.
-- .agents/chatgpt/ARENA-DISPATCH.md — Arena Issue/prompt compiler.
-- .agents/arena/AGENTS.md — Arena execution contract.
-- .agents/workflows/ — reusable task procedures: research, plan, implement,
-  debug, review, security, recover.
+- `.agents/RESEARCH.md` — shared canonical research/evidence standard.
+- `.agents/chatgpt/AGENTS.md` — ChatGPT's role with the human.
+- `.agents/chatgpt/ARENA-DISPATCH.md` — Arena Issue/prompt compiler.
+- `.agents/arena/AGENTS.md` — Arena execution contract.
+- `.agents/workflows/` — reusable task procedures: research, plan, implement,
+  debug, review, security, recover. `debug.md` and `review.md` are each their
+  one canonical procedure; no duplicate skill owns either.
+- `.agents/skills/README.md` — canonical catalog and role routing for adopted,
+  optional specialized capabilities; `PROVENANCE.md` records their third-party
+  sources/licenses/adaptations.
 
 ### Durable project truth
 
-- docs/architecture/agent-operating-stack.md — current V1 operating-stack
+- `docs/architecture/agent-operating-stack.md` — current V1 operating-stack
   architecture.
-- docs/ — other project truth/supporting evidence; create real subdirectories
+- `docs/` — other project truth/supporting evidence; create real subdirectories
   only when real content requires them.
 - Issues/PRs/branches/Git history — task state, execution history, review
   evidence.
 
 ### Deterministic/enforcement layer
 
-- .gitattributes — path-aware Git content/whitespace policy used by verification.
-- scripts/verify — stable verification entry point.
-- scripts/repo-check — repository operating-invariant checks.
-- .github/ISSUE_TEMPLATE/arena-task.md — standard Arena task contract.
-- .github/PULL_REQUEST_TEMPLATE.md — evidence-oriented PR template.
-- .github/CODEOWNERS — ownership of sensitive operating surfaces.
-- .github/workflows/verify.yml — repository verification in CI.
+- `.gitattributes` — path-aware Git content/whitespace policy used by verification.
+- `scripts/verify` — stable verification entry point.
+- `scripts/repo-check` — repository operating-invariant checks.
+- `.github/ISSUE_TEMPLATE/arena-task.md` — standard Arena task contract.
+- `.github/PULL_REQUEST_TEMPLATE.md` — evidence-oriented PR template.
+- `.github/CODEOWNERS` — ownership of sensitive operating surfaces.
+- `.github/workflows/verify.yml` — repository verification in CI.
 
 ## Role routing
 
 - ChatGPT project bootstrap: external project instructions should only point to
-  /AGENTS.md and then /.agents/chatgpt/AGENTS.md.
+  `/AGENTS.md` and then `/.agents/chatgpt/AGENTS.md`.
 - Arena bootstrap: use the canonical execution prompt defined in
-  .agents/chatgpt/ARENA-DISPATCH.md. It loads standing operating policy before
+  `.agents/chatgpt/ARENA-DISPATCH.md`. It loads standing operating policy before
   the assigned Issue; the Issue contains only task-specific
   references/workflow/capabilities.
 
@@ -114,7 +118,7 @@ references/workflow/capabilities are active and what result/evidence is expected
 
 > Prefer deterministic verification over trusting prose or agent claims wherever practical.
 
-For repository changes, run scripts/verify unless the Issue explicitly defines
+For repository changes, run `scripts/verify` unless the Issue explicitly defines
 a stronger/specialized verification path. PRs must map evidence to acceptance
 criteria.
 
@@ -134,19 +138,24 @@ Routine reversible implementation details should be resolved autonomously.
 ## Capability rule
 
 A workflow, skill, or tool is active only when the assigned task selects it or
-repo policy makes it universally required, such as scripts/verify.
+repo policy makes it universally required, such as `scripts/verify`.
 
-Do not adopt frameworks, dependencies, memory systems, review systems, or
-security tools merely because they exist.
+The governed capability surface is `.agents/skills/`; its catalog owns the
+current list, purposes, and planning/execution routing. A selected Issue names
+the exact repo-relative capability path under "Selected skills / tools" and
+why it applies. The agent then reads/uses it as a subordinate procedure.
+Capabilities are never activated just because they exist, and no capability may
+override root policy, role policy, accepted project truth, or the Issue.
 
-Specialized skills and external tool adapters are not part of the current
-repository. They may be adopted later by deliberate human + ChatGPT decision,
-which must also create the surface that holds them. Do not create placeholder
-directories in advance.
+Adding/removing a capability requires a deliberate human + ChatGPT decision,
+actual adopted content (never placeholders), an update to the catalog and
+provenance record, and deterministic repository checks. Do not independently
+adopt frameworks, dependencies, memory systems, review systems, or security
+tools merely because they exist.
 
 ## State/memory
 
-V1 has no dedicated canonical state.json or CURRENT.md.
+V1 has no dedicated canonical `state.json` or `CURRENT.md`.
 
 Recover operational state from Issues, PRs, branches, Git history, accepted
 docs/ADRs, and current implementation evidence. Add dedicated state machinery

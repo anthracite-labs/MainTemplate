@@ -6,6 +6,10 @@ fail() {
   exit 1
 }
 
+require_file() {
+  [ -f "$1" ] || fail "required file missing: $1"
+}
+
 required_files='
 AGENTS.md
 README.md
@@ -18,9 +22,54 @@ README.md
 .agents/workflows/plan.md
 .agents/workflows/implement.md
 .agents/workflows/debug.md
+.agents/workflows/hitl-loop.template.sh
 .agents/workflows/review.md
 .agents/workflows/security.md
 .agents/workflows/recover.md
+.agents/skills/README.md
+.agents/skills/PROVENANCE.md
+.agents/skills/writing-for-agents/SKILL.md
+.agents/skills/writing-for-agents/MECHANICS.md
+.agents/skills/grilling/SKILL.md
+.agents/skills/domain-modeling/SKILL.md
+.agents/skills/domain-modeling/CONTEXT-FORMAT.md
+.agents/skills/domain-modeling/ADR-FORMAT.md
+.agents/skills/codebase-design/SKILL.md
+.agents/skills/codebase-design/DEEPENING.md
+.agents/skills/codebase-design/DESIGN-IT-TWICE.md
+.agents/skills/tdd/SKILL.md
+.agents/skills/tdd/tests.md
+.agents/skills/tdd/mocking.md
+.agents/skills/to-spec/SKILL.md
+.agents/skills/to-tickets/SKILL.md
+.agents/skills/wayfinder/SKILL.md
+.agents/skills/prototype/SKILL.md
+.agents/skills/prototype/LOGIC.md
+.agents/skills/prototype/UI.md
+.agents/skills/improve-codebase-architecture/SKILL.md
+.agents/skills/improve-codebase-architecture/REPORT-FORMAT.md
+.agents/skills/resolving-merge-conflicts/SKILL.md
+.agents/skills/security-audit/LICENSE
+.agents/skills/security-audit/SKILL.md
+.agents/skills/security-audit/RECONNAISSANCE.md
+.agents/skills/security-audit/HUNTING.md
+.agents/skills/security-audit/ATTACK-CLASSES.md
+.agents/skills/security-audit/AI-AND-LLM.md
+.agents/skills/security-audit/CLIENT-SIDE.md
+.agents/skills/security-audit/CLOUD-AND-DEPLOYMENT.md
+.agents/skills/security-audit/DATA-ISOLATION-AND-LIFECYCLE.md
+.agents/skills/security-audit/DESKTOP-MOBILE-AND-LOCAL-IPC.md
+.agents/skills/security-audit/MEMORY-SAFETY-AND-BINARY.md
+.agents/skills/security-audit/PROTOCOLS-RPC-AND-MESSAGING.md
+.agents/skills/security-audit/RESOURCE-EXHAUSTION-AND-AVAILABILITY.md
+.agents/skills/security-audit/SUPPLY-CHAIN-AND-RELEASE.md
+.agents/skills/security-audit/VALIDATION-AND-REPORTING.md
+.agents/skills/security-audit/WEB-PROTOCOL-AND-AUTH.md
+.agents/skills/security-audit/report-schema.json
+.agents/skills/security-audit/validate-findings.cjs
+.agents/skills/security-audit/validate-findings.test.cjs
+.agents/skills/security-audit/validate-coverage-ledger.cjs
+.agents/skills/security-audit/validate-coverage-ledger.test.cjs
 .github/ISSUE_TEMPLATE/arena-task.md
 .github/PULL_REQUEST_TEMPLATE.md
 .github/CODEOWNERS
@@ -33,7 +82,40 @@ docs/architecture/agent-operating-stack.md
 
 printf '%s\n' "$required_files" | while IFS= read -r path; do
   [ -z "$path" ] && continue
-  [ -f "$path" ] || fail "required file missing: $path"
+  require_file "$path"
+done
+
+# The governed capability surface is an exact present-tense list, not a future
+# directory reservation. Adding a capability means updating this invariant and
+# the catalog/provenance in the same change.
+required_skill_dirs='
+codebase-design
+domain-modeling
+grilling
+improve-codebase-architecture
+prototype
+resolving-merge-conflicts
+security-audit
+tdd
+to-spec
+to-tickets
+wayfinder
+writing-for-agents
+'
+
+actual_skill_dirs=$(
+  find .agents/skills -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | LC_ALL=C sort
+)
+expected_skill_dirs=$(printf '%s\n' "$required_skill_dirs" | sed '/^$/d' | LC_ALL=C sort)
+[ "$actual_skill_dirs" = "$expected_skill_dirs" ] ||
+  fail "skill directory surface differs from the governed current list"
+
+printf '%s\n' "$required_skill_dirs" | while IFS= read -r skill; do
+  [ -z "$skill" ] && continue
+  [ -f ".agents/skills/$skill/SKILL.md" ] ||
+    fail "capability has no SKILL.md: .agents/skills/$skill"
+  [ "$(find ".agents/skills/$skill" -type f | wc -l | tr -d ' ')" -gt 0 ] ||
+    fail "capability is empty: .agents/skills/$skill"
 done
 
 [ ! -e state.json ] || fail "root state.json is not part of V1 canonical state"
@@ -44,8 +126,11 @@ lines=$(wc -l < AGENTS.md | tr -d ' ')
 
 [ -x scripts/verify ] || fail "scripts/verify must be executable"
 [ -x scripts/repo-check ] || fail "scripts/repo-check must be executable"
+[ -x .agents/workflows/hitl-loop.template.sh ] ||
+  fail "hitl-loop.template.sh must be executable"
 
 sh -n scripts/verify
 sh -n scripts/repo-check
+bash -n .agents/workflows/hitl-loop.template.sh
 
 printf '%s\n' "repo-check: ok"

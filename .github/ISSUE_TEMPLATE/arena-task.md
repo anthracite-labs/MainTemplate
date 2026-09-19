@@ -39,7 +39,16 @@ If none, write None.
 
 # Selected skills / tools
 
-<!-- List deliberately selected capabilities. If none, write None. -->
+<!--
+List deliberately selected capabilities only. A capability is not active because
+it exists in .agents/skills/. For each selected skill: exact repo-relative path,
+task branch it governs, and why the primary workflow is insufficient. If none,
+write None.
+
+Example:
+- `.agents/skills/tdd/SKILL.md` — red→green changes for <behavior>; public seam
+  is already decided by <Issue/spec>.
+-->
 
 None
 
