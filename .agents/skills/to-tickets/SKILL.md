@@ -26,8 +26,10 @@ If you have not already explored the codebase, do so, to understand the current
 state. Ticket titles and descriptions use the project's domain glossary
 vocabulary (where one exists) and respect accepted ADRs in the area touched.
 
-Look for opportunities to prefactor the code to make the implementation
-easier: "make the change easy, then make the easy change."
+Do not invent a refactor merely because it would make later implementation
+nicer. Consider an **enabling prefactor** only when it is genuinely necessary
+to deliver the already-approved outcome safely. When ordinary implementation
+can proceed safely without it, do not create a prefactor ticket.
 
 ### 3. Draft vertical slices
 
@@ -40,7 +42,20 @@ Break the work into **tracer bullet** tickets:
 - A completed slice is independently demoable or verifiable where practical.
 - Each slice is sized so one Arena execution unit fits one coherent PR, within
   one fresh context.
-- Any prefactoring comes first.
+
+An enabling prefactor is an exception, not a default. Create a separate
+prefactor ticket only when all of these are true:
+
+- it is genuinely necessary for the already-approved outcome, not merely a
+  cleaner future implementation;
+- it is itself bounded and independently verifiable;
+- it preserves existing behavior unless the approved task explicitly changes
+  that behavior;
+- it does not introduce consequential architecture without Human + ChatGPT
+  approval and durable project truth.
+
+If it qualifies, record why it gates the approved outcome and make it a real
+blocking edge. Otherwise, do not add it.
 
 Give each ticket its **blocking edges**: the other tickets that must complete
 before it can start. A ticket with no blockers can start immediately. Record

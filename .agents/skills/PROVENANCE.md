@@ -2,8 +2,8 @@
 
 Single canonical third-party provenance record for material under
 `.agents/skills/`. This file is the durable attribution and adaptation record
-required by the adoption decision (Issue #20). Individual skill files carry at
-most a one-line pointer here instead of duplicated attribution prose.
+for the adopted capability surface. Individual skill files carry at most a
+one-line pointer here instead of duplicated attribution prose.
 
 Adopted content is self-contained: nothing in this repository requires runtime
 network access to the upstream repositories.

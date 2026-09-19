@@ -65,14 +65,10 @@ capability by exact repo-relative path and states why it applies. The agent then
 reads it as a subordinate procedure. No proprietary invocation adapter,
 installer, second router, or runtime upstream dependency is required.
 
-The accepted role routing is intentionally not an authority ladder:
-
-- **Human + ChatGPT planning/guidance:** `grilling`, `domain-modeling`,
-  `wayfinder`, `to-spec`, `to-tickets`, decision-oriented `prototype`,
-  `improve-codebase-architecture`, `writing-for-agents`.
-- **Arena execution, only when an Issue selects it:** `tdd`,
-  `codebase-design`, `resolving-merge-conflicts`, `security-audit`, and
-  prototype work only when the bounded task explicitly asks Arena to build one.
+The catalog's role routing is intentionally not an authority ladder. For the
+current adopted capability names, purposes, and planning/execution routing,
+consult `/.agents/skills/README.md`; do not duplicate that mutable inventory in
+standing policy or architecture documents.
 
 Capabilities exist because current use earned adoption; every capability
 directory contains real content, and `scripts/repo-check` validates the exact
@@ -179,7 +175,7 @@ stores that state durably and a second store would become a competing mutable
 copy. `scripts/repo-check` enforces the absence of both files.
 
 **Selective governed capability surface.** V1 originally contained no skills
-because no capability had earned adoption. Issue #20 deliberately adopted an
+because no capability had earned adoption. A deliberate adoption pass created an
 actual, finite surface under `/.agents/skills/`, with exact upstream provenance
 and MIT notices. It did not install an upstream operating system: MainTemplate
 retains ownership of roles, authority conflicts, project truth, durable GitHub

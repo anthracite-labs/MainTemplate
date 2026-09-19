@@ -94,27 +94,17 @@ At minimum:
 
 ## Planning-capability routing
 
-The capability catalog (`.agents/skills/README.md`) is the canonical list and
-purpose index. Select a planning capability only when its shape earns the
-additional procedure:
+`.agents/skills/README.md` is the sole detailed catalog of adopted capability
+names, purposes, and planning/execution routing. Consult it when a task may
+need more than normal planning or dispatch; select only the exact path whose
+shape the task earns.
 
-- structured interrogation of a consequential/ambiguous decision → `grilling`;
-- active vocabulary and domain-boundary work → `domain-modeling`;
-- large ambiguous work whose route is not clear → `wayfinder`;
-- substantial feature meaning that needs a durable feature spec → `to-spec`;
-- settled work that must be split into bounded, independently verifiable Arena
-  Issues → `to-tickets`;
-- a design question materially easier to settle with a runnable/visible artifact
-  → `prototype`;
-- architecture-friction survey/candidate exploration →
-  `improve-codebase-architecture`;
-- AGENTS/workflow/skill/reference-document authoring → `writing-for-agents`.
-
-Do not use grilling for ordinary small questions. Do not send unresolved
-consequential product or architecture decisions to Arena. For large work, the
-preferred handoff is wayfinder → to-spec when justified → to-tickets when
-needed → bounded Arena Issue. Each capability remains subordinate to root
-policy; capability routing is not an authority ladder.
+Do not use structured interrogation for ordinary small questions. Do not send
+unresolved consequential product or architecture decisions to Arena. For large
+work, use the catalog's planning route to settle the route, synthesize a
+substantial feature specification where justified, decompose when necessary,
+and then dispatch bounded Arena Issues. Each capability remains subordinate to
+root policy; capability routing is not an authority ladder.
 
 ## Arena dispatch
 

@@ -95,16 +95,39 @@ Its body is the question, sized to one agent session:
 Mark each ticket's type (`research`, `prototype`, `grilling`, `task`) in its
 title or a label, per [Ticket types](#ticket-types).
 
-A session **claims** a ticket by assigning the Issue to the person/session
-driving the map, **first**, before any work, so concurrent sessions skip it.
-That assignee _is_ the claim: an open, unassigned ticket is unclaimed.
+### Claiming and concurrency
+
+GitHub is the durable claim substrate, but the safe claim mechanism depends on
+the identities the environment actually exposes. Before any substantive work,
+use exactly one of these models:
+
+1. **Distinct GitHub identities are available.** Assign the Issue to the
+   identity doing the work before starting. The assignee is the claim; an open,
+   unassigned Issue is available.
+2. **Workers share one GitHub identity, but each has a stable distinct
+   worker/session identifier.** Do not pretend that the shared assignee
+   distinguishes workers. Post a durable claim comment that names the stable
+   identifier, for example `Wayfinder claim: worker-<stable-id>`, before
+   starting. Immediately reread the Issue and begin only if that identifier owns
+   the earliest active claim. A worker that discovers an earlier claim stops and
+   leaves no competing work; the winner records a release comment if it stops
+   without resolving the Issue. A closed Issue ends its active claim.
+3. **No stable distinct worker/session identity exists.** Do not pretend
+   concurrent claiming is safe. Serialize work on that frontier, or have the
+   human coordinate explicit assignment before a worker starts.
+
+A shared-identity comment is durable GitHub-visible coordination, not an atomic
+lock. If simultaneous comments or stale claims make ownership ambiguous,
+serialize or ask the human to coordinate rather than guessing. Do not create a
+session-state file, database, lock service, or external coordination system.
 
 Blocking uses GitHub's **native** dependency relationship where available: it
 renders the frontier in GitHub's own UI, so the human sees what's takeable
 without opening the map. Where native blocking is unavailable, record a
 "Blocked by" list of Issue links in the body. A ticket is **unblocked** when
-every ticket blocking it is closed; the **frontier** is the open, unblocked,
-unclaimed children — the edge of the known.
+every ticket blocking it is closed; the **frontier** is the open, unblocked
+children without an active claim under the applicable model — the edge of the
+known.
 
 The answer isn't part of the body; it's recorded on resolution (see [Work
 through the map](#work-through-the-map)). Assets created while resolving a
@@ -232,7 +255,8 @@ pick the next decision, not the human.
 
 1. Load the **map**: the low-res view, not every ticket body.
 2. Choose the ticket. If the human named one, use it. Otherwise take the first
-   frontier ticket in order. **Claim it**: assign the Issue before any work.
+   frontier ticket in order. **Claim it** before any work using the applicable
+   model in [Claiming and concurrency](#claiming-and-concurrency).
 3. Resolve it. **Zoom as needed**: fetch the full body of any related or closed
    ticket on demand; read and apply whichever capabilities the map's
    `## Notes` names. If in doubt, apply
@@ -251,8 +275,10 @@ pick the next decision, not the human.
    resolving it on the route. If the decision invalidates other parts of the
    map, update or delete those tickets.
 
-Unblocked tickets may be worked in parallel sessions, so expect concurrent
-edits on GitHub; the claim-by-assignment rule keeps sessions from colliding.
+Unblocked tickets may be worked in parallel only when the applicable claim
+model has distinct durable worker identity and no ownership ambiguity. Otherwise
+serialize the frontier or have the human coordinate it; GitHub state must not be
+made to promise concurrency safety it cannot enforce.
 
 ## Completion
 

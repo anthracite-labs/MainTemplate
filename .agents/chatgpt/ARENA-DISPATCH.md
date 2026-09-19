@@ -156,10 +156,10 @@ and role-routing reference. It is not a mandate to load every capability. No
 skill is selected merely because it exists; selected skills remain subordinate
 to project truth, policy, and the Issue.
 
-For an implementation Issue, `tdd`, `codebase-design`, `prototype` (only when
-the bounded task asks Arena to build one), `resolving-merge-conflicts`, and
-`security-audit` (only when full deep audit depth is explicitly required) are
-examples of possible selections — not a default bundle.
+For the current adopted capability names, purposes, and role routing, consult
+`.agents/skills/README.md`. Select only the exact paths the task needs; no
+implementation capability is a default bundle. The primary workflow still owns
+the task, and a selected capability remains subordinate to the Issue.
 
 ## Scope test
 
