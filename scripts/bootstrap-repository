@@ -47,8 +47,8 @@ Manages exactly two things in this repository:
      configuration (deletion and non-fast-forward blocked; a pull request
      required with review-thread resolution; the "verify" status check
      required; merge/squash/rebase allowed; no bypass actors; no exclusions).
-     Inherited organization/enterprise rulesets are never modified and are
-     reported if they also govern main.
+     Inherited organization/enterprise rulesets are never modified. A
+     best-effort note reports those that explicitly include refs/heads/main.
 
 Ownership:
   - User-owned repository: the default managed owner is the repository owner
