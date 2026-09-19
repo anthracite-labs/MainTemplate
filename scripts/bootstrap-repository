@@ -55,12 +55,14 @@ Ownership:
     user; --owner USER may override it after validation.
   - Organization-owned repository: a bare organization name cannot own code,
     so there is no default. Pass --owner USER or --owner ORG/TEAM explicitly;
-    an ORG/TEAM team must be visible to you and have write permission or
-    higher on this repository.
+    an ORG/TEAM team must be visible to you and have effective write
+    permission or higher on this repository.
   - A code owner user must have write permission or higher on this repository
     (write, maintain, or admin). Read and triage permission is refused, as is
-    an unverifiable permission level: a team's eligibility is established
-    from its actual repository permission, not from mere access.
+    an unverifiable permission level. A team's eligibility is established
+    from its actual repository permission, not from mere access, and custom
+    repository roles qualify through their effective permissions (push,
+    maintain, or admin true), never through their role-name strings.
   - Every requested owner is validated against GitHub before anything is
     changed. Unverifiable owners are refused, never guessed.
 
@@ -227,14 +229,14 @@ validate_owner() {
       v_status=$(printf '%s\n' "$v_resp" |
         sed -n 's/^HTTP[^ ]* \([0-9][0-9][0-9]\).*/\1/p' | head -n 1)
       if [ "${v_status:-}" = 404 ]; then
-        fail "team '$v_token' has no confirmed access to $repo (permission lookup returned 404); a code owner team must have write permission or higher (push/write, maintain, or admin). Raise the team's repository permission or choose another owner."
+        fail "team '$v_token' has no confirmed access to $repo (permission lookup returned 404); a code owner team must have effective write permission or higher on the repository (push, maintain, or admin). Raise the team's repository permission or choose another owner."
       fi
       [ "${v_status:-}" = 200 ] ||
-        fail "cannot verify the repository permission of team '$v_token' with the current credentials (permission lookup returned ${v_status:-no response}); a code owner team must have write permission or higher on $repo, and unverifiable permission is refused"
+        fail "cannot verify the repository permission of team '$v_token' with the current credentials (permission lookup returned ${v_status:-no response}); a code owner team must have effective write permission or higher on $repo, and unverifiable permission data is refused"
       v_body=$(printf '%s\n' "$v_resp" | sed '1,/^$/d')
+      v_role=$(printf '%s\n' "$v_body" | jq -r '.role_name // ""' 2>/dev/null) || v_role=
       v_level=$(printf '%s\n' "$v_body" | jq -r '
-        if .role_name and .role_name != "" then .role_name
-        elif .permissions then
+        if (.permissions | type) == "object" then
           (if .permissions.admin then "admin"
            elif .permissions.maintain then "maintain"
            elif .permissions.push then "write"
@@ -245,10 +247,10 @@ validate_owner() {
       case $v_level in
         admin | maintain | write | push) : ;;
         read | triage | none)
-          fail "team '$v_token' has '${v_level:-unknown}' permission on $repo; a code owner team must have write permission or higher (push/write, maintain, or admin). Raise the team's repository permission or choose another owner."
+          fail "team '$v_token' has only '${v_level:-unknown}' effective permission on $repo (role name '${v_role:-unspecified}'); a code owner team must have effective write permission or higher (push, maintain, or admin). Custom repository roles qualify through their effective permissions, not their role names. Raise the team's repository permission or choose another owner."
           ;;
         *)
-          fail "cannot verify the repository permission level of team '$v_token' with the current credentials (lookup returned '${v_level:-no response}'); a code owner team must have write permission or higher on $repo, and unverifiable permission is refused"
+          fail "cannot verify the repository permission of team '$v_token' with the current credentials (lookup returned '${v_level:-no response}', role name '${v_role:-unspecified}'); a code owner team must have effective write permission or higher on $repo, and unverifiable permission data is refused"
           ;;
       esac
       ;;

@@ -274,10 +274,17 @@ set_user() { # <login> <type>
 set_perm() { # <login> <permission>
   jq -n --arg p "$2" '{permission: $p}' >"$S/mock/perm-$1.json"
 }
-set_teamrepo_perm() { # <level: pull|triage|push|maintain|admin> — one repo object, as the
-  # media-type direct permission check returns it (cumulative booleans + role_name).
-  jq -n --arg full "$REPO_SLUG" --arg lvl "$1" '
-    {full_name: $full, role_name: (if $lvl == "push" then "write" else $lvl end),
+set_teamrepo_perm() { # <level: pull|triage|push|maintain|admin> [role_name override] — one
+  # repo object, as the media-type direct permission check returns it
+  # (cumulative booleans + role_name; custom repository roles carry an
+  # arbitrary role_name beside the standard permission booleans).
+  rp_lvl=$1
+  rp_role=${2:-}
+  [ -n "$rp_role" ] || {
+    if [ "$rp_lvl" = push ]; then rp_role=write; else rp_role=$rp_lvl; fi
+  }
+  jq -n --arg full "$REPO_SLUG" --arg lvl "$rp_lvl" --arg role "$rp_role" '
+    {full_name: $full, role_name: $role,
       permissions: {
         pull: ($lvl == "pull" or $lvl == "triage" or $lvl == "push" or $lvl == "maintain" or $lvl == "admin"),
         triage: ($lvl == "triage" or $lvl == "push" or $lvl == "maintain" or $lvl == "admin"),
@@ -383,7 +390,7 @@ for lvl in pull triage; do
   write_co '@anthracite-labs'
   expect_fail "s3t: '$lvl'-permission team is refused" run --owner acme/platform
   assert_out "s3t: '$lvl' refusal states the write-or-higher requirement" \
-    'must have write permission or higher'
+    'must have effective write permission or higher'
 done
 
 for lvl in maintain admin; do
@@ -405,7 +412,7 @@ printf '404\n' >"$S/mock/teamrepo.status"
 write_co '@anthracite-labs'
 expect_fail 's3t: team without repository access is refused' run --owner acme/platform
 assert_out 's3t: no-access refusal states the write-or-higher requirement' \
-  'must have write permission or higher'
+  'must have effective write permission or higher'
 
 scenario s3t-unverifiable acme Organization
 printf '200\n' >"$S/mock/team.status"
@@ -415,6 +422,69 @@ write_co '@anthracite-labs'
 expect_fail 's3t: visible team with unverifiable permission level is refused' run --owner acme/platform
 assert_out 's3t: unverifiable refusal explains the missing verification' \
   'cannot verify the repository permission'
+
+# 3t-custom: custom repository roles carry an arbitrary role_name beside the
+# standard permission booleans; eligibility follows the effective permission
+# booleans, never the role-name string.
+scenario s3t-custom-push acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm push 'Security Engineer'
+write_co '@anthracite-labs'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's3t-custom: custom role + push:true is accepted' run --owner acme/platform
+assert_eq 's3t-custom: push custom-role owner written' \
+  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/docs/')" '@acme/platform'
+
+scenario s3t-custom-maintain acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm maintain 'Platform Operator'
+write_co '@anthracite-labs'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's3t-custom: custom role + maintain:true is accepted' run --owner acme/platform
+assert_eq 's3t-custom: maintain custom-role owner written' \
+  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/docs/')" '@acme/platform'
+
+scenario s3t-custom-admin acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm admin 'Release Administrator'
+write_co '@anthracite-labs'
+set_repo_rulesets "$(printf '[%s]' "$(exact_ruleset 111)")" "$(printf '[%s]' "$(exact_ruleset 111)")"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's3t-custom: custom role + admin:true is accepted' run --owner acme/platform
+assert_eq 's3t-custom: admin custom-role owner written' \
+  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/docs/')" '@acme/platform'
+
+scenario s3t-custom-pull acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm pull 'Read Auditor'
+write_co '@anthracite-labs'
+expect_fail 's3t-custom: custom role + pull-only is rejected' run --owner acme/platform
+assert_out 's3t-custom: pull-only rejection states effective write requirement' \
+  'must have effective write permission or higher'
+
+scenario s3t-custom-triage acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+set_teamrepo_perm triage 'Issue Curator'
+write_co '@anthracite-labs'
+expect_fail 's3t-custom: custom role + triage-only is rejected' run --owner acme/platform
+assert_out 's3t-custom: triage-only rejection states effective write requirement' \
+  'must have effective write permission or higher'
+
+scenario s3t-custom-noperms acme Organization
+printf '200\n' >"$S/mock/team.status"
+printf '200\n' >"$S/mock/teamrepo.status"
+jq -n --arg full "$REPO_SLUG" '{full_name: $full, role_name: "Ghost Operator"}' >"$S/mock/teamrepos.json"
+write_co '@anthracite-labs'
+expect_fail 's3t-custom: custom role with no permission map is rejected as unverifiable' run --owner acme/platform
+assert_out 's3t-custom: no-permission-map refusal explains the missing data' \
+  'unverifiable permission data is refused'
 
 # 4: explicit user override eligibility — a code owner user must have write
 # permission or higher; read, triage, none, and unverifiable are refused.

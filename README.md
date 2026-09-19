@@ -64,8 +64,9 @@ reports it as a user; organization-owned repositories must pass an explicit
 code). Eligibility is precise: a code owner user must have write permission
 or higher on the repository (write, maintain, or admin) — read and triage are
 refused — and a team must hold write permission or higher on it too,
-established from the team's actual repository permission level rather than
-mere access; unverifiable permission is refused, never guessed. Custom rules
+established from the team's actual repository permission booleans rather
+than mere access or the role's name, so custom repository roles qualify by
+what they can do; unverifiable permission is refused, never guessed. Custom rules
 and comments are preserved. Second, this repository's own `Protect main` ruleset:
 deletion and non-fast-forward blocked, a pull request required with
 review-thread resolution, the `verify` status check required, and
