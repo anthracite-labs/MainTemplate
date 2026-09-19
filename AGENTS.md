@@ -88,7 +88,7 @@ Conflict rules:
 - `scripts/repo-check` — repository operating-invariant checks.
 - `.github/ISSUE_TEMPLATE/arena-task.md` — standard Arena task contract.
 - `.github/PULL_REQUEST_TEMPLATE.md` — evidence-oriented PR template.
-- `.github/CODEOWNERS` — ownership of sensitive operating surfaces.
+- `.github/CODEOWNERS` — advisory ownership and review routing for sensitive operating surfaces.
 - `.github/workflows/verify.yml` — repository verification in CI.
 
 ## Role routing

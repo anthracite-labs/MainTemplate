@@ -22,13 +22,17 @@ migration.
 
 ## Plan, don't do
 
-Wayfinder is **planning** by default: each ticket resolves a decision, and the
-map is done when the way is clear, with nothing left to decide before someone
-goes and does the thing. The pull to just do the work is usually the signal
-you've reached the edge of the map and it's time to hand off. An effort can
-override this in its **Notes**, carrying execution into the map itself, but
-absent that, produce decisions, not deliverables. Execution that the map does
-authorize still flows through bounded Arena Issues.
+Wayfinder is **planning**: each ticket resolves a decision, and the map is done
+when the way is clear, with nothing left to decide before someone goes and does
+the thing. The pull to just do the work is usually the signal you've reached the
+edge of the map and it's time to hand off.
+
+A planning capability must not create an alternate execution-authority path
+around root or role policy. Notes cannot authorize routine implementation into
+the map: routine implementation belongs to Arena via bounded Issues, and any
+direct ChatGPT action is strictly governed by the canonical direct-execution
+exception in `../../chatgpt/AGENTS.md`. Execution authorized by the completed map
+flows through bounded Arena Issues.
 
 ## Refer by name
 
@@ -157,15 +161,18 @@ broken this).
   [../grilling/](../grilling/SKILL.md) together with
   [../domain-modeling/](../domain-modeling/SKILL.md) so vocabulary sharpens as
   decisions settle.
-- **Task** (HITL or AFK): manual work that must happen before a _decision_ can
-  be made: nothing to decide, prototype, or research, but the discussion is
-  blocked until it's done. Signing up for a service so its API can be judged,
-  provisioning access, moving data so its shape can be seen. The one type that
-  _does_ rather than decides; it earns its place by unblocking a decision, not
-  by delivering the destination. The agent drives it alone where it can (AFK);
-  otherwise it hands the human a precise checklist (HITL). Resolved when the
-  work is done; the answer records what was done and any resulting facts
-  (credential location, new URLs, row counts) later tickets depend on.
+- **Task** (HITL): external or manual action that must happen before a
+  _decision_ can be made: nothing to decide, prototype, or research, but the
+  discussion is blocked until it's done. Signing up for a service so its API can
+  be judged, provisioning access, moving external data so its shape can be seen.
+  It earns its place by unblocking a decision, not by delivering the
+  destination. Hands the human a precise checklist to execute (HITL). It does
+  not authorize routine repository implementation by ChatGPT or create an
+  alternate execution path; repository implementation belongs to Arena via
+  bounded Issues, and direct ChatGPT execution is limited to the canonical
+  exception in `../../chatgpt/AGENTS.md`. Resolved when the action is complete;
+  the answer records what was done and any resulting facts (credential location,
+  new URLs, row counts) later tickets depend on.
 
 ## Fog of war
 

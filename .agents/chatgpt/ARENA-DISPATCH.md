@@ -138,6 +138,11 @@ Open or update the PR with the required verification evidence when complete.
 Keep the external prompt this small. Put task detail in the Issue rather than
 duplicating it here.
 
+The bounded manual acceptance test in
+`docs/verification/arena-boot-acceptance.md` verifies that a fresh Arena
+execution honors this authority sequence when confronted with conflicting
+instructions.
+
 ## Capability selection
 
 For each task, choose deliberately:

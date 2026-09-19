@@ -84,5 +84,10 @@ run.
   or add speculative features.
 - **One slice at a time.** One seam, one test, one minimal implementation per
   cycle.
-- **Refactoring is not part of the loop.** It belongs to the review stage
-  (`/.agents/workflows/review.md`), not the red → green implementation cycle.
+- **Refactor after green, within the slice.** Once the test passes, perform
+  necessary local cleanup to eliminate immediate duplication or awkwardness
+  while keeping the tests green. Do not perform speculative or unrelated
+  refactoring. Consequential architectural refactoring requires a human-approved
+  durable decision before execution. Independent review
+  (`/.agents/workflows/review.md`) assesses the work independently; it does not
+  perform implementation or refactoring.

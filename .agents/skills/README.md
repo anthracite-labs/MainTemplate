@@ -11,25 +11,12 @@ recorded once in [PROVENANCE.md](PROVENANCE.md).
 
 ## Activation model
 
-A capability is a subordinate procedure. Root `/AGENTS.md` owns the general
-activation rule: exactly three paths activate a capability, and a capability's
-mere existence never does.
-
-- **Human + ChatGPT planning selection** (before any Arena Issue exists):
-  planning/guidance capabilities below are deliberately selected when Human +
-  ChatGPT need help thinking, deciding, mapping, specifying, or compiling
-  work. Select the minimum capability needed, at its exact capability path.
-  The capability remains subordinate to root and ChatGPT policy; it may help
-  create durable decisions, specs, maps, or Arena Issues. No Arena Issue is
-  required for this path.
-- **Arena execution selection**: execution capabilities below are active only
-  when the assigned GitHub Issue selects them by repo-relative path (e.g.
-  `.agents/skills/tdd/SKILL.md` under "Selected skills / tools") and states
-  why they apply. Arena does not select capabilities for itself merely because
-  they exist.
-- **Policy-required procedure**: governing policy may make a procedure
-  universally required. No skill is universally required. `scripts/verify` is
-  a universally required repository procedure, not a skill.
+A capability is a subordinate procedure. Root `/AGENTS.md` ("Capability rule")
+is the canonical owner of general capability activation: exactly three paths
+activate a capability (planning selection by Human + ChatGPT, execution selection
+by assigned GitHub Issue, or universally required repository policy). A
+capability's mere existence never activates it, and no capability may override
+root policy, role policy, accepted project truth, or the Issue.
 
 Do not load capabilities "because they are there". Read a selected
 capability's `SKILL.md` first; load its support files only when its procedure

@@ -20,9 +20,9 @@ Closes #
 
 <!-- Map evidence to the assigned Issue criteria. -->
 
-## Independent review evidence
+## Author self-check evidence
 
-<!-- Keep these concerns separate; do not collapse them into one score. -->
+<!-- Author/executor self-assessment across the three review axes before submitting. (Does not replace independent review.) -->
 
 ### Spec / task fidelity
 
@@ -35,6 +35,10 @@ Closes #
 ### Risk / evidence
 
 <!-- Edge/security/destructive behavior, verification quality, drift, residual risk, or no findings. -->
+
+## Independent review evidence (Human + ChatGPT)
+
+<!-- Recorded by Human + ChatGPT during independent review per .agents/workflows/review.md; do not fill as author self-report. -->
 
 ## Architecture / policy
 

@@ -108,8 +108,11 @@ constraints, acceptance criteria, verification, escalation boundaries).
 Decomposition does not weaken the dispatch standard — each ticket must still
 pass the scope test in `../../chatgpt/ARENA-DISPATCH.md` before dispatch.
 
-In ticket bodies, avoid specific file paths or code snippets: they go stale
-fast. Exception: if a prototype produced a snippet that encodes a decision more
+In ticket bodies, avoid speculative implementation paths or brittle step-by-step
+code scripts that over-constrain execution or go stale fast. However, do provide
+exact canonical reference paths (governing docs, ADRs, existing interfaces) and
+known bounded surfaces/scope boundaries as required by the Arena task contract.
+Exception: if a prototype produced a snippet that encodes a decision more
 precisely than prose can (state machine, reducer, schema, type shape), inline
 it and note briefly that it came from a prototype. Trim to the decision-rich
 parts, not a working demo.
