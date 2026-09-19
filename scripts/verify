@@ -11,14 +11,12 @@ cd "$repo_root"
 # idempotence, and refusal behavior are verified without touching GitHub.
 ./scripts/tests/bootstrap-behavior
 
-# The selected Cloudflare security-audit capability vendors deterministic,
-# zero-dependency validators and their tests. Run the tests wherever Node is
-# available (the capability's supported runtime); a no-Node environment still
-# verifies repository structure and clearly reports the unavailable runtime.
+# Vendored Cloudflare validators and their tests. Run wherever Node is
+# available; a no-Node environment still verifies repository structure.
 if command -v node >/dev/null 2>&1; then
   node --test \
-    .agents/skills/security-audit/validate-findings.test.cjs \
-    .agents/skills/security-audit/validate-coverage-ledger.test.cjs
+    .agents/vendor/cloudflare/skills/security-audit/validate-findings.test.cjs \
+    .agents/vendor/cloudflare/skills/security-audit/validate-coverage-ledger.test.cjs
 else
   printf '%s\n' "verify: Node unavailable; skipped security-audit validator tests" >&2
 fi
@@ -27,12 +25,8 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1 &&
    git rev-parse --verify -q HEAD >/dev/null; then
   empty_tree=$(git hash-object -t tree /dev/null)
 
-  # Committed repository integrity.
   git diff --check "$empty_tree" HEAD
 
-  # The state actually about to be submitted: committed content plus any
-  # staged, unstaged, or new untracked (non-ignored) changes. A scratch index
-  # is used so the real index is never modified.
   scratch_index=$(mktemp "${TMPDIR:-/tmp}/verify-index.XXXXXX")
   trap 'rm -f "$scratch_index"' EXIT HUP INT TERM
   rm -f "$scratch_index"

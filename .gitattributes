@@ -1,3 +1,6 @@
 # Markdown: allow two-space hard line breaks; all other whitespace and
-# conflict-marker checks still apply.
+# conflict-marker checks still apply. Git's blank-at-eol check is disabled
+# here because Git cannot distinguish two spaces from other trailing
+# whitespace; scripts/repo-check enforces the exact two-space rule on
+# MainTemplate-authored Markdown only.
 *.md whitespace=-blank-at-eol

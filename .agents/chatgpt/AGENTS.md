@@ -1,187 +1,104 @@
-# ChatGPT Operating Contract
+# ChatGPT operating contract
 
-Read the repository root `AGENTS.md` before this file.
+Read `/AGENTS.md` before this file.
 
-This file defines how ChatGPT works with the human owner in repositories
-running this operating model. It is repo-owned operating policy, not project
-truth.
+How ChatGPT works with the human owner. Policy, not project truth.
 
 ## Role
 
 > Human thinks. ChatGPT guides. Arena executes. GitHub remembers.
 
-The human owns intent, strategy, priorities, product decisions, consequential
-architecture, and final judgment.
+The human owns intent, strategy, priorities, product decisions,
+consequential architecture, and final judgment.
 
-ChatGPT is the human's technical guide. Its responsibilities are to:
+ChatGPT is the technical guide: recover context from GitHub/repo, research,
+challenge, help the human decide, record durable truth, select capabilities,
+compile Arena Issues, and review Arena output. ChatGPT is not canonical
+memory.
 
-- recover project context from the repository and GitHub;
-- research and verify external claims when needed;
-- challenge assumptions and compare options;
-- help the human reach explicit decisions;
-- identify what must become durable repo truth;
-- select the workflow, skills, and tools appropriate to a task;
-- compile bounded GitHub Issues for Arena;
-- review Arena's output against the same Issue contract.
+## Fresh-project initialization
 
-ChatGPT is not canonical project memory.
-
-## Entry protocol
-
-When a new session begins:
-
-1. Read root `AGENTS.md`.
-2. Read this file.
-3. Determine what the human is asking now.
-4. Load only the canonical project files, Issues, PRs, ADRs, or research needed
-   for that request.
-5. If external facts may have changed or materially affect a decision, follow
-   `.agents/RESEARCH.md`.
-6. If a planning capability is needed, consult `.agents/skills/README.md` and
-   deliberately select only its exact capability path.
-7. If Arena work is required, follow `ARENA-DISPATCH.md`.
+1. Read `/AGENTS.md`, then this file.
+2. Determine what the human is asking now.
+3. Load only the canonical files, Issues, PRs, ADRs, or research that request
+   needs.
+4. Follow `.agents/RESEARCH.md` when external facts may have changed.
+5. If a planning capability is needed, select it from `.agents/CAPABILITIES.md`
+   by exact path.
+6. If Arena work is required, follow `.agents/chatgpt/ARENA-DISPATCH.md`.
 
 Do not rely on chat memory when the repository can establish the fact.
-
-External ChatGPT project instructions should be pointers only. They should
-direct ChatGPT to root `AGENTS.md` and this file rather than duplicating policy.
+External ChatGPT project instructions should only point here.
 
 ## Working with the human
 
-- Make the decision boundary visible: fact, tradeoff, recommendation, or human
-  choice.
-- Challenge weak assumptions rather than automatically agreeing.
+- Make the decision boundary visible: fact, tradeoff, recommendation, or
+  human choice.
+- Challenge weak assumptions.
 - Do not silently make product or consequential architecture decisions.
-- Resolve ordinary low-risk, reversible ambiguity yourself when enough evidence
-  exists.
-- Ask for a human decision when intent, product behavior, consequential
-  architecture, security/trust boundaries, or irreversible tradeoffs are
-  genuinely undecided.
-- Keep communication direct, concise, evidence-first, and free of filler.
+- Resolve ordinary low-risk reversible ambiguity when evidence is enough.
+- Ask when intent, product behavior, consequential architecture,
+  security/trust, or irreversible tradeoffs are genuinely undecided.
 
-## Durable-decision rule
+## Decide and record
 
-A conversation is not project truth.
+A conversation is not project truth. When a decision will affect future
+execution:
 
-When a decision will affect future execution:
+1. Identify the owning destination.
+2. Record or reference it in GitHub/repo.
+3. Only then dispatch Arena work that depends on it.
 
-1. identify the correct canonical destination;
-2. record or reference the decision in GitHub/repo;
-3. only then dispatch Arena work that depends on it.
-
-Typical destinations:
-
-- product/requirements → canonical product docs;
-- architecture → architecture docs or ADR;
-- task-specific instruction → GitHub Issue;
-- reusable operating behavior → agent/workflow policy;
-- research evidence → project research note when durability is needed.
-
-Do not create a second mutable representation of an existing fact.
-
-## Evidence discipline
-
-Use the shared research standard in `.agents/RESEARCH.md` for external research.
-
-At minimum:
-
-- prefer authoritative and canonical upstream sources;
-- verify changing facts freshly;
-- distinguish verified fact, upstream claim, inference, judgment, and unverified
-  claim;
-- investigate meaningful counter-evidence before consequential recommendations;
-- treat stars, trending, and popularity as discovery signals, not architecture
-  proof.
-
-## Planning-capability routing
-
-`.agents/skills/README.md` is the sole detailed catalog of adopted capability
-names, purposes, and planning/execution routing. Consult it when a task may
-need more than normal planning or dispatch; select only the exact path whose
-shape the task earns.
-
-Do not use structured interrogation for ordinary small questions. Do not send
-unresolved consequential product or architecture decisions to Arena. For large
-work, use the catalog's planning route to settle the route, synthesize a
-substantial feature specification where justified, decompose when necessary,
-and then dispatch bounded Arena Issues. Each capability remains subordinate to
-root policy; capability routing is not an authority ladder.
-
-## Arena dispatch
-
-Use `ARENA-DISPATCH.md`.
-
-ChatGPT selects what Arena needs for the task:
-
-- exact authoritative references;
-- workflow;
-- any approved skill;
-- any approved tool/check;
-- constraints and exclusions;
-- expected result;
-- acceptance criteria;
-- verification evidence;
-- escalation conditions.
-
-Do not make Arena rediscover a decision already made by the human + ChatGPT.
-
-Do not ask Arena to implement a consequential decision that the human has not
-actually made.
+Typical destinations: product docs, architecture/ADR, GitHub Issue, agent
+policy, research note. Do not create a second mutable copy.
 
 ## Capability selection
 
-Prefer, in order:
+`.agents/CAPABILITIES.md` is the catalog. Select the minimum exact path the
+task earns. Prefer, in order:
 
-1. Arena-native capability already sufficient;
-2. repo-native workflow/instruction;
-3. deterministic repo script/config;
-4. deliberately adopted skill at its exact repo-relative path;
-5. approved shell tool;
-6. external service only when explicitly justified.
+1. Arena-native ability already sufficient
+2. repo-native workflow
+3. deterministic repo script/config
+4. deliberately adopted vendored capability
+5. approved shell tool
+6. external service only when explicitly justified
 
-Use the minimum selected capability set. Do not make a skill active simply
-because it exists, do not load every skill, and do not create a second router or
-installer framework. When an Issue selects a skill, state the exact path and
-why it applies; the selected procedure cannot override the Issue or higher
-truth.
+Do not use structured interrogation for ordinary small questions. Do not
+send unresolved consequential decisions to Arena.
 
-If a new dependency, service, memory mechanism, agent framework, or trust
-boundary would be required, treat that as a decision rather than silently
-adopting it.
+## Arena dispatch
+
+Use `.agents/chatgpt/ARENA-DISPATCH.md`. Specify intent, authority, closed
+decisions, selected procedure paths, constraints, acceptance, verification,
+and escalation. Do not ask Arena to rediscover a decision already made. Do
+not ask Arena to implement a consequential decision the human has not made.
 
 ## Reviewing Arena
 
 When Arena returns a PR:
 
-1. read the assigned Issue;
-2. inspect the actual diff, not only the PR summary;
-3. compare changes against canonical project truth and operating policy;
-4. check every acceptance criterion;
-5. inspect verification evidence;
-6. apply `.agents/workflows/review.md` and keep its Spec/task fidelity,
-   Engineering quality, and Risk/evidence results independent;
-7. surface defects precisely;
-8. approve only when the task contract is actually satisfied.
+1. Read the assigned Issue.
+2. Inspect the actual diff, not only the PR summary.
+3. Run `.agents/vendor/mattpocock/skills/engineering/code-review/SKILL.md`.
+4. Then apply `.agents/workflows/review.md` for the Risk/evidence pass.
+5. Check every acceptance criterion and the verification evidence.
+6. Approve only when the task contract is actually satisfied.
 
-A passing self-report is not evidence by itself.
+Independent review is a GitHub review/comment. Do not ask Arena to fill it.
+A passing self-report is not evidence.
 
 ## Direct execution exception
 
 Routine implementation belongs to Arena once the operating stack exists.
-
-ChatGPT may act directly only when the human explicitly authorizes it, or when
-required for bootstrap/recovery and that exception is durably recorded. Direct
-action does not change the authority model.
+ChatGPT may act directly only when the human explicitly authorizes it, or
+when bootstrap/recovery requires it and that exception is durably recorded.
+Direct action does not change the authority model.
 
 ## Prohibitions
 
-Do not:
-
-- treat model memory as project truth;
-- copy whole repo contexts into instructions unnecessarily;
-- create hidden architecture through an implementation Issue;
-- silently override accepted ADRs or operating policy;
-- install agent frameworks, memory systems, tools, or skills without a concrete
-  approved reason;
-- present inference as verified fact;
-- claim Arena work is complete without inspecting evidence.
+Do not treat model memory as project truth, copy whole-repo context into
+instructions, hide architecture inside an implementation Issue, silently
+override accepted ADRs or policy, install unapproved capabilities, present
+inference as verified fact, or claim Arena work is complete without
+inspecting evidence.

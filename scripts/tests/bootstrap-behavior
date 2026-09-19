@@ -121,8 +121,12 @@ shift
 method=GET
 header=0
 url=
+paginate=0
 while [ $# -gt 0 ]; do
   case $1 in
+    --paginate)
+      paginate=1
+      ;;
     -X)
       method=${2:-GET}
       shift
@@ -167,8 +171,22 @@ case $url in
       exit 0
     fi
     case $url in
-      *includes_parents=false*) cat "$M/rulesets-repo.json" ;;
-      *includes_parents=true*) cat "$M/rulesets-all.json" ;;
+      *includes_parents=false*)
+        if [ "$paginate" = 1 ] && [ -f "$M/rulesets-repo-page2.json" ]; then
+          cat "$M/rulesets-repo.json"
+          cat "$M/rulesets-repo-page2.json"
+        else
+          cat "$M/rulesets-repo.json"
+        fi
+        ;;
+      *includes_parents=true*)
+        if [ "$paginate" = 1 ] && [ -f "$M/rulesets-all-page2.json" ]; then
+          cat "$M/rulesets-all.json"
+          cat "$M/rulesets-all-page2.json"
+        else
+          cat "$M/rulesets-all.json"
+        fi
+        ;;
       *) die "ambiguous ruleset list url: $url" ;;
     esac
     ;;
@@ -687,6 +705,63 @@ expect_ok 's14: second complete apply' run
 assert_file_eq 's14: CODEOWNERS unchanged' "$S/repo/.github/CODEOWNERS" "$S/co.after-first"
 assert_file_eq 's14: no further GitHub mutation' "$S/mock/mutations.log" "$S/mutations.after-first"
 expect_ok 's14: final --check is green' run --check
+
+# 15: ruleset discovery pagination — Protect main or inherited ruleset
+# beyond page 1.
+# 15a: repository-owned ruleset on page 2 matches; --check passes and apply
+# creates no duplicate.
+scenario s15a alice User
+default_fixtures
+write_co '@anthracite-labs'
+other_ruleset='[{"id": 99, "name": "Other branch ruleset", "target": "branch", "source_type": "Repository", "source": "owner/repo-under-test"}]'
+printf '%s\n' "$other_ruleset" >"$S/mock/rulesets-repo.json"
+printf '[%s]\n' "$(exact_ruleset 111)" >"$S/mock/rulesets-repo-page2.json"
+printf '%s\n' "$other_ruleset" >"$S/mock/rulesets-all.json"
+printf '[%s]\n' "$(exact_ruleset 111)" >"$S/mock/rulesets-all-page2.json"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's15a: --check finds matching ruleset on page 2' run --check
+assert_out 's15a: check reports satisfaction' 'matches the intended configuration'
+expect_ok 's15a: apply finds ruleset on page 2 and does not create duplicate' run
+assert_empty 's15a: no ruleset creation or mutation performed' "$S/mock/mutations.log"
+assert_eq 's15a: CODEOWNERS updated' \
+  "$(co_owner_at "$S/repo/.github/CODEOWNERS" '/AGENTS.md')" '@alice'
+
+# 15b: repository-owned ruleset on page 2 differs; apply updates (PUT)
+# rather than creating a duplicate (POST).
+scenario s15b alice User
+default_fixtures
+write_co '@alice'
+other_ruleset='[{"id": 99, "name": "Other branch ruleset", "target": "branch", "source_type": "Repository", "source": "owner/repo-under-test"}]'
+different=$(exact_ruleset 111 | jq '.conditions.ref_name.include = ["refs/heads/main", "refs/heads/release"]')
+printf '%s\n' "$other_ruleset" >"$S/mock/rulesets-repo.json"
+printf '[%s]\n' "$different" >"$S/mock/rulesets-repo-page2.json"
+printf '%s\n' "$other_ruleset" >"$S/mock/rulesets-all.json"
+printf '[%s]\n' "$different" >"$S/mock/rulesets-all-page2.json"
+printf '%s\n' "$different" >"$S/mock/ruleset-111.json"
+expect_ok 's15b: apply updates ruleset on page 2' run
+assert_out 's15b: convergence reported' 'converging repository-owned'
+grep -q 'PUT repos/owner/repo-under-test/rulesets/111 ' "$S/mock/mutations.log" &&
+  okc 's15b: ruleset updated via PUT' ||
+  badc 's15b: ruleset updated via PUT' 'no PUT in mutation log'
+if grep -q 'POST repos/owner/repo-under-test/rulesets ' "$S/mock/mutations.log" 2>/dev/null; then
+  badc 's15b: no duplicate ruleset created' 'POST found in mutation log'
+else
+  okc 's15b: no duplicate ruleset created'
+fi
+
+# 15c: inherited ruleset on page 2 is reported in a read-only stderr note.
+scenario s15c alice User
+default_fixtures
+write_co '@anthracite-labs'
+parent=$(exact_ruleset 999 | jq '.source = "parent-org/enterprise"')
+other_parent='[{"id": 88, "name": "Unrelated org ruleset", "source": "parent-org", "source_type": "Organization", "enforcement": "active", "conditions": {"ref_name": {"include": ["refs/heads/release"]}}}]'
+set_repo_rulesets "$(jq -n --argjson r "$(exact_ruleset 111)" '[$r]')" \
+  "$other_parent"
+printf '[%s, %s]\n' "$(exact_ruleset 111)" "$parent" >"$S/mock/rulesets-all-page2.json"
+exact_ruleset 111 >"$S/mock/ruleset-111.json"
+expect_ok 's15c: inherited ruleset on page 2 reported' run --check
+assert_out 's15c: parent ruleset note appears' 'inherited ruleset Protect main from parent-org/enterprise'
+assert_empty 's15c: no mutations performed' "$S/mock/mutations.log"
 
 # ------------------------------------------------------------------ result
 

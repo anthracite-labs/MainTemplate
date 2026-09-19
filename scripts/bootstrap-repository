@@ -38,17 +38,22 @@ Usage:
 Manages exactly two things in this repository:
 
   1. The owner token on the six managed rules in .github/CODEOWNERS
-     (/AGENTS.md /.gitattributes /.agents/ /.github/ /scripts/ /docs/).
-     Custom rules, comments, and unrelated owners are preserved. A missing,
-     duplicated, or malformed managed rule fails instead of being guessed at.
+     (/AGENTS.md /.gitattributes /.agents/ /.github/ /scripts/ /docs/) for
+     advisory ownership and review routing. Custom rules, comments, and
+     unrelated owners are preserved. A missing, duplicated, or malformed
+     managed rule fails instead of being guessed at.
 
   2. This repository's own 'Protect main' ruleset: create it, or converge an
      existing repository-owned ruleset of that name to the intended
      configuration (deletion and non-fast-forward blocked; a pull request
      required with review-thread resolution; the "verify" status check
-     required; merge/squash/rebase allowed; no bypass actors; no exclusions).
+     required; merge/squash/rebase allowed; no bypass actors; no exclusions;
+     zero required approving reviews and code-owner review disabled).
      Inherited organization/enterprise rulesets are never modified. A
      best-effort note reports those that explicitly include refs/heads/main.
+
+  After Protect main is active, local CODEOWNERS edits cannot be pushed to
+  main. Commit them on a branch and open a pull request, then rerun --check.
 
 Ownership:
   - User-owned repository: the default managed owner is the repository owner
@@ -297,7 +302,8 @@ fi
 # rulesets are excluded from discovery (includes_parents=false) and never
 # treated as the managed ruleset or as a duplicate; they are only reported
 # when they also govern main.
-rs_rows=$(gh api "repos/$repo/rulesets?includes_parents=false" |
+# Discovery paginates so a ruleset beyond page 1 is not missed.
+rs_rows=$(gh api --paginate "repos/$repo/rulesets?includes_parents=false" |
   jq -r --arg name "$RULESET_NAME" --arg repo "$repo" '.[] |
     select(.name == $name and .target == "branch" and
       ((.source_type // "Repository") == "Repository") and
@@ -308,7 +314,7 @@ rs_count=$(printf '%s\n' "$rs_rows" | sed '/^$/d' | wc -l | tr -d ' ')
   fail "$rs_count repository-owned branch rulesets named '$RULESET_NAME' exist in $repo; resolve the duplication manually — bootstrap owns exactly one"
 ruleset_id=$(printf '%s\n' "$rs_rows" | sed '/^$/d' | cut -f1 | head -n 1)
 
-if rs_all=$(gh api "repos/$repo/rulesets?includes_parents=true" 2>/dev/null); then
+if rs_all=$(gh api --paginate "repos/$repo/rulesets?includes_parents=true" 2>/dev/null); then
   printf '%s' "$rs_all" |
     jq -r --arg repo "$repo" '.[] |
       select(((.source // $repo) != $repo) and .enforcement == "active" and
@@ -510,4 +516,8 @@ EOF
     ;;
 esac
 
-printf '%s\n' "bootstrap: done for $repo — finish with: scripts/bootstrap-repository --check"
+if [ -n "${tmp_co:-}" ] || [ "$managed_token" != "$desired_owner" ]; then
+  printf '%s\n' "bootstrap: done for $repo — commit CODEOWNERS on a branch and open a pull request (Protect main blocks direct pushes to main), then run scripts/bootstrap-repository --check"
+else
+  printf '%s\n' "bootstrap: done for $repo — finish with: scripts/bootstrap-repository --check"
+fi

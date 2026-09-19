@@ -1,16 +1,17 @@
-# Ownership of sensitive operating surfaces.
+# Advisory ownership and review routing for sensitive operating surfaces.
 #
 # The six managed rules below are initialized and converged by
 # scripts/bootstrap-repository: it substitutes a GitHub-validated owner
-# (default: the repository owner user, for user-owned repositories;
+# (default: the repository owner when GitHub reports it as a user;
 # organization-owned repositories require an explicit --owner USER or
 # --owner ORG/TEAM, because a bare organization name cannot own code) and
 # verifies the result with --check. The source template legitimately carries
 # its current owner here until a generated repository bootstraps. Custom
 # rules may be added freely: bootstrap manages only the six managed paths
 # below and preserves everything else. This file is required:
-# scripts/repo-check enforces its structure; /AGENTS.md maps it as a current
-# enforcement surface.
+# scripts/repo-check enforces its structure; /AGENTS.md maps it as advisory
+# ownership and review routing (Protect main does not require code-owner
+# approval to merge).
 /AGENTS.md @anthracite-labs
 /.gitattributes @anthracite-labs
 /.agents/ @anthracite-labs

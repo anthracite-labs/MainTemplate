@@ -15,69 +15,27 @@ AGENTS.md
 README.md
 .gitattributes
 .agents/RESEARCH.md
+.agents/CAPABILITIES.md
+.agents/PROVENANCE.md
+.agents/OPERATING-MODEL.md
 .agents/chatgpt/AGENTS.md
 .agents/chatgpt/ARENA-DISPATCH.md
 .agents/arena/AGENTS.md
-.agents/workflows/research.md
-.agents/workflows/plan.md
-.agents/workflows/implement.md
-.agents/workflows/debug.md
-.agents/workflows/hitl-loop.template.sh
 .agents/workflows/review.md
 .agents/workflows/security.md
 .agents/workflows/recover.md
-.agents/skills/README.md
-.agents/skills/PROVENANCE.md
-.agents/skills/writing-for-agents/SKILL.md
-.agents/skills/writing-for-agents/MECHANICS.md
-.agents/skills/grilling/SKILL.md
-.agents/skills/domain-modeling/SKILL.md
-.agents/skills/domain-modeling/CONTEXT-FORMAT.md
-.agents/skills/domain-modeling/ADR-FORMAT.md
-.agents/skills/codebase-design/SKILL.md
-.agents/skills/codebase-design/DEEPENING.md
-.agents/skills/codebase-design/DESIGN-IT-TWICE.md
-.agents/skills/tdd/SKILL.md
-.agents/skills/tdd/tests.md
-.agents/skills/tdd/mocking.md
-.agents/skills/to-spec/SKILL.md
-.agents/skills/to-tickets/SKILL.md
-.agents/skills/wayfinder/SKILL.md
-.agents/skills/prototype/SKILL.md
-.agents/skills/prototype/LOGIC.md
-.agents/skills/prototype/UI.md
-.agents/skills/improve-codebase-architecture/SKILL.md
-.agents/skills/improve-codebase-architecture/REPORT-FORMAT.md
-.agents/skills/resolving-merge-conflicts/SKILL.md
-.agents/skills/security-audit/LICENSE
-.agents/skills/security-audit/SKILL.md
-.agents/skills/security-audit/RECONNAISSANCE.md
-.agents/skills/security-audit/HUNTING.md
-.agents/skills/security-audit/ATTACK-CLASSES.md
-.agents/skills/security-audit/AI-AND-LLM.md
-.agents/skills/security-audit/CLIENT-SIDE.md
-.agents/skills/security-audit/CLOUD-AND-DEPLOYMENT.md
-.agents/skills/security-audit/DATA-ISOLATION-AND-LIFECYCLE.md
-.agents/skills/security-audit/DESKTOP-MOBILE-AND-LOCAL-IPC.md
-.agents/skills/security-audit/MEMORY-SAFETY-AND-BINARY.md
-.agents/skills/security-audit/PROTOCOLS-RPC-AND-MESSAGING.md
-.agents/skills/security-audit/RESOURCE-EXHAUSTION-AND-AVAILABILITY.md
-.agents/skills/security-audit/SUPPLY-CHAIN-AND-RELEASE.md
-.agents/skills/security-audit/VALIDATION-AND-REPORTING.md
-.agents/skills/security-audit/WEB-PROTOCOL-AND-AUTH.md
-.agents/skills/security-audit/report-schema.json
-.agents/skills/security-audit/validate-findings.cjs
-.agents/skills/security-audit/validate-findings.test.cjs
-.agents/skills/security-audit/validate-coverage-ledger.cjs
-.agents/skills/security-audit/validate-coverage-ledger.test.cjs
+.agents/vendor/UPSTREAM.lock
 .github/ISSUE_TEMPLATE/arena-task.md
 .github/PULL_REQUEST_TEMPLATE.md
 .github/CODEOWNERS
 .github/workflows/verify.yml
 scripts/verify
 scripts/repo-check
+scripts/bootstrap-repository
+scripts/tests/bootstrap-behavior
 docs/README.md
-docs/architecture/agent-operating-stack.md
+docs/agents/issue-tracker.md
+docs/agents/triage-labels.md
 '
 
 printf '%s\n' "$required_files" | while IFS= read -r path; do
@@ -85,74 +43,199 @@ printf '%s\n' "$required_files" | while IFS= read -r path; do
   require_file "$path"
 done
 
-# The governed capability surface is an exact present-tense list, not a future
-# directory reservation. Adding a capability means updating this invariant and
-# the catalog/provenance in the same change.
-required_skill_dirs='
-codebase-design
-domain-modeling
-grilling
-improve-codebase-architecture
-prototype
-resolving-merge-conflicts
-security-audit
-tdd
-to-spec
-to-tickets
-wayfinder
-writing-for-agents
-'
-
-actual_skill_dirs=$(
-  find .agents/skills -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | LC_ALL=C sort
-)
-expected_skill_dirs=$(printf '%s\n' "$required_skill_dirs" | sed '/^$/d' | LC_ALL=C sort)
-[ "$actual_skill_dirs" = "$expected_skill_dirs" ] ||
-  fail "skill directory surface differs from the governed current list"
-
-printf '%s\n' "$required_skill_dirs" | while IFS= read -r skill; do
-  [ -z "$skill" ] && continue
-  [ -f ".agents/skills/$skill/SKILL.md" ] ||
-    fail "capability has no SKILL.md: .agents/skills/$skill"
-  [ "$(find ".agents/skills/$skill" -type f | wc -l | tr -d ' ')" -gt 0 ] ||
-    fail "capability is empty: .agents/skills/$skill"
-done
-
 [ ! -e state.json ] || fail "root state.json is not part of the canonical state model"
 [ ! -e CURRENT.md ] || fail "root CURRENT.md is not part of the canonical state model"
+[ ! -e .agents/skills ] || fail "adapted skill forks must not exist at .agents/skills/"
+[ ! -e docs/architecture/agent-operating-stack.md ] ||
+  fail "operating-model rationale moved to .agents/OPERATING-MODEL.md"
+[ ! -e .agents/workflows/debug.md ] ||
+  fail "debug.md must not fork diagnosing-bugs; use the vendored skill"
+[ ! -e .agents/workflows/plan.md ] ||
+  fail "plan.md duplicates standing ChatGPT/Arena behavior"
+[ ! -e .agents/workflows/research.md ] ||
+  fail "research.md duplicates .agents/RESEARCH.md"
+[ ! -e .agents/workflows/implement.md ] ||
+  fail "implement.md duplicates standing Arena execution"
 
 lines=$(wc -l < AGENTS.md | tr -d ' ')
-[ "$lines" -le 200 ] || fail "AGENTS.md exceeds 200-line routing budget ($lines)"
+[ "$lines" -le 180 ] || fail "AGENTS.md exceeds 180-line routing budget ($lines)"
 
 [ -x scripts/verify ] || fail "scripts/verify must be executable"
 [ -x scripts/repo-check ] || fail "scripts/repo-check must be executable"
 [ -x scripts/bootstrap-repository ] || fail "scripts/bootstrap-repository must be executable"
 [ -x scripts/tests/bootstrap-behavior ] || fail "scripts/tests/bootstrap-behavior must be executable"
-[ -x .agents/workflows/hitl-loop.template.sh ] ||
-  fail "hitl-loop.template.sh must be executable"
 
 sh -n scripts/verify
 sh -n scripts/repo-check
 sh -n scripts/bootstrap-repository
 sh -n scripts/tests/bootstrap-behavior
-bash -n .agents/workflows/hitl-loop.template.sh
 
-# Architecture is not version-branded: the current architecture has no version
-# label, and none may quietly return. Vendored upstream content is excluded.
-for doc in AGENTS.md README.md docs/README.md docs/architecture/agent-operating-stack.md; do
-  if grep -nE '\bV[0-9]+\b' "$doc" > "${TMPDIR:-/tmp}/repo-check-version.$$" 2>/dev/null; then
-    cat "${TMPDIR:-/tmp}/repo-check-version.$$" >&2
-    rm -f "${TMPDIR:-/tmp}/repo-check-version.$$"
-    fail "architecture version marker reintroduced in $doc (the architecture is not versioned)"
-  fi
-  rm -f "${TMPDIR:-/tmp}/repo-check-version.$$"
+# ------------------------------------------------------------------ vendor
+lock=.agents/vendor/UPSTREAM.lock
+require_file "$lock"
+
+vendor_roots='.agents/vendor/mattpocock
+.agents/vendor/cloudflare'
+
+printf '%s\n' "$vendor_roots" | while IFS= read -r root; do
+  [ -z "$root" ] && continue
+  [ -d "$root" ] || fail "vendor root missing: $root"
 done
 
-# .github/CODEOWNERS managed-rule invariants. These are repository-local and
-# mechanical only; GitHub validity/access verification belongs to
-# scripts/bootstrap-repository --check. The managed-path list and the
-# source-template owner are read from the bootstrap script (single owner).
-command -v jq >/dev/null 2>&1 || fail "jq is required by scripts/bootstrap-repository"
+expected_files=$(mktemp "${TMPDIR:-/tmp}/repo-check-expected.XXXXXX")
+actual_files=$(mktemp "${TMPDIR:-/tmp}/repo-check-actual.XXXXXX")
+trap 'rm -f "$expected_files" "$actual_files"' EXIT HUP INT TERM
+
+awk '$1=="FILE" {
+  if (NF != 7) { print "repo-check: malformed FILE line: " $0 > "/dev/stderr"; exit 1 }
+  print $7
+}' "$lock" | LC_ALL=C sort > "$expected_files"
+
+# shellcheck disable=SC2086
+find $vendor_roots -type f | LC_ALL=C sort > "$actual_files"
+
+if ! cmp -s "$expected_files" "$actual_files"; then
+  printf '%s\n' "repo-check: vendor file set differs from UPSTREAM.lock" >&2
+  comm -3 "$expected_files" "$actual_files" >&2
+  fail "added, removed, or unexpected vendored files"
+fi
+
+awk '$1=="SOURCE" {
+  if (NF != 3) { print "repo-check: malformed SOURCE line: " $0 > "/dev/stderr"; exit 1 }
+}
+$1=="FILE" {
+  if (NF != 7) { print "repo-check: malformed FILE line: " $0 > "/dev/stderr"; exit 1 }
+  repo=$2; commit=$3; mode=$4; blob=$5; upath=$6; lpath=$7
+  if (mode != "100644" && mode != "100755") {
+    print "repo-check: invalid mode " mode " for " lpath > "/dev/stderr"; exit 1
+  }
+}' "$lock" || fail "UPSTREAM.lock failed structural parse"
+
+while IFS= read -r line; do
+  set -- $line
+  [ "$1" = FILE ] || continue
+  mode=$4
+  blob=$5
+  lpath=$7
+  [ -f "$lpath" ] || fail "vendored file missing: $lpath"
+  got=$(git hash-object "$lpath")
+  [ "$got" = "$blob" ] ||
+    fail "vendored content mismatch: $lpath (got $got, want $blob)"
+  if [ -x "$lpath" ]; then
+    gotmode=100755
+  else
+    gotmode=100644
+  fi
+  [ "$gotmode" = "$mode" ] ||
+    fail "vendored mode mismatch: $lpath (got $gotmode, want $mode)"
+done < "$lock"
+
+# Catalog names every vendored SKILL.md and no adapted-skill path.
+skill_paths=$(awk '$1=="FILE" && $7 ~ /\/SKILL\.md$/ { print $7 }' "$lock")
+[ -n "$skill_paths" ] || fail "UPSTREAM.lock contains no SKILL.md entries"
+for skill in $skill_paths; do
+  grep -Fq "$skill" .agents/CAPABILITIES.md ||
+    fail "CAPABILITIES.md does not name $skill"
+done
+stale=$(grep -nF '.agents/skills/' \
+  AGENTS.md README.md \
+  .agents/CAPABILITIES.md .agents/PROVENANCE.md .agents/OPERATING-MODEL.md \
+  .agents/RESEARCH.md .agents/chatgpt/AGENTS.md \
+  .agents/chatgpt/ARENA-DISPATCH.md .agents/arena/AGENTS.md \
+  .agents/workflows/review.md .agents/workflows/security.md \
+  .agents/workflows/recover.md \
+  .github/ISSUE_TEMPLATE/arena-task.md .github/PULL_REQUEST_TEMPLATE.md \
+  docs/README.md docs/agents/issue-tracker.md docs/agents/triage-labels.md \
+  scripts/verify 2>/dev/null || true)
+[ -z "$stale" ] || fail "stale .agents/skills/ reference remains:\n$stale"
+
+# Vendor relative references that stay inside a capability directory.
+# Example paths whose first component does not exist are skipped.
+for skill_md in $skill_paths; do
+  skill_dir=$(dirname "$skill_md")
+  find "$skill_dir" -name '*.md' -type f | while IFS= read -r md; do
+    grep -oE '\[[^]]*\]\([^)]+\)' "$md" 2>/dev/null |
+      sed 's/.*](//;s/)$//' |
+      while IFS= read -r url; do
+        [ -n "$url" ] || continue
+        case $url in
+          http://*|https://*|mailto:*|\#*|link) continue ;;
+        esac
+        rel=${url#./}
+        first=${rel%%/*}
+        [ -e "$skill_dir/$first" ] || continue
+        target=$skill_dir/$rel
+        target=${target%%#*}
+        [ -e "$target" ] ||
+          fail "broken vendor relative reference in $md: $url"
+      done
+  done
+done
+
+# Our-file markdown links to repo-relative paths.
+our_md=$(git ls-files -co --exclude-standard '*.md' | grep -v '^\.agents/vendor/' || true)
+printf '%s\n' "$our_md" | while IFS= read -r md; do
+  [ -n "$md" ] || continue
+  grep -oE '\[[^]]*\]\([^)]+\)' "$md" 2>/dev/null |
+    sed 's/.*](//;s/)$//' |
+    while IFS= read -r url; do
+      [ -n "$url" ] || continue
+      case $url in
+        http://*|https://*|mailto:*|\#*) continue ;;
+      esac
+      rel=${url#./}
+      rel=${rel%%#*}
+      case $rel in
+        AGENTS.md|.agents/*|docs/*|scripts/*|.github/*|README.md)
+          [ -e "$rel" ] || fail "broken reference in $md: $url"
+          ;;
+      esac
+    done
+done
+
+# Canonical Arena prompt order: /AGENTS.md → Arena policy → assigned Issue.
+prompt_block=$(awk '
+  /^```text$/ { p=1; next }
+  p && /^```$/ { exit }
+  p { print }
+' .agents/chatgpt/ARENA-DISPATCH.md)
+[ -n "$prompt_block" ] || fail "ARENA-DISPATCH.md missing canonical prompt fence"
+printf '%s\n' "$prompt_block" | awk '
+  $0 == "Read `/AGENTS.md` completely." {
+    if (s == 0) s = 1; else bad = 1
+    next
+  }
+  $0 == "Then read `/.agents/arena/AGENTS.md` completely." {
+    if (s == 1) s = 2; else bad = 1
+    next
+  }
+  $0 == "Then open and execute Issue #N exactly as written." {
+    if (s == 2) s = 3; else bad = 1
+    next
+  }
+  END {
+    if (s != 3 || bad) exit 1
+  }
+' || fail "ARENA-DISPATCH.md prompt does not load /AGENTS.md then /.agents/arena/AGENTS.md then Issue #N in that order"
+
+# Markdown trailing whitespace on our files only: exactly two-space hard
+# breaks (non-whitespace followed by two spaces). Vendor files are immutable.
+printf '%s\n' "$our_md" | while IFS= read -r md; do
+  [ -n "$md" ] || continue
+  [ -f "$md" ] || continue
+  awk '
+    /[[:space:]]+$/ {
+      if (!/[^[:space:]]  $/) {
+        print FILENAME ":" FNR ": invalid trailing whitespace (only two-space hard line break allowed)"
+        bad = 1
+      }
+    }
+    END { if (bad) exit 1 }
+  ' "$md" || fail "invalid trailing whitespace in $md"
+done
+
+# .github/CODEOWNERS managed-rule invariants. Mechanical only; GitHub
+# validity belongs to scripts/bootstrap-repository --check.
 managed_paths=$(awk -F"'" '/^MANAGED_PATHS=/ {print $2}' scripts/bootstrap-repository)
 template_owner=$(awk -F= '/^TEMPLATE_OWNER=/ {print $2}' scripts/bootstrap-repository)
 [ -n "$managed_paths" ] || fail "cannot read MANAGED_PATHS from scripts/bootstrap-repository"
@@ -195,16 +278,6 @@ for p in $managed_paths; do
 done
 [ -n "$co_managed_token" ] || fail ".github/CODEOWNERS contains no managed owner rules"
 
-# Only the six bootstrap-managed rules are constrained here. Custom CODEOWNERS
-# rules are deliberately left to GitHub's CODEOWNERS parser: valid custom rules
-# may use multiple owners, email owners, inline comments, and other supported
-# syntax. repo-check must not become a competing partial CODEOWNERS parser.
-
-# Stale source-template owner: a repository created from this template keeps
-# the template owner in the managed rules until scripts/bootstrap-repository
-# substitutes a validated owner; deterministic verification fails by design
-# until then. Deliberate non-default owners and the template repository itself
-# pass. Skipped when the origin remote is absent or not GitHub.
 if remote_url=$(git remote get-url origin 2>/dev/null); then
   case $remote_url in
     *github.com[:/]*)
