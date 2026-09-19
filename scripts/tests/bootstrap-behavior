@@ -187,10 +187,6 @@ case $url in
       cat "$M/ruleset-$id.json"
     fi
     ;;
-  */branches/main/protection)
-    st=$(cat "$M/protection.status" 2>/dev/null || printf 404)
-    printf 'HTTP/2 %s\n' "$st"
-    ;;
   orgs/*/teams/*/repos/*)
     st=$(cat "$M/teamrepo.status" 2>/dev/null || printf 404)
     printf 'HTTP/2 %s\n\n' "$st"
@@ -340,15 +336,14 @@ co_owner_at() { # <file> <path>
 
 # ============================================================== scenarios
 
-# 1 + 6 + 9 + 14a: user-owned default; custom rules preserved; no admin
-# demanded when the ruleset already matches; rerun is a no-op.
+# 1 + 6 + 9 + 14a: user-owned default; custom rules preserved; no
+# ruleset write is attempted when the ruleset already matches; rerun is a no-op.
 scenario s1 alice User
 default_fixtures
 write_co '@anthracite-labs'
 set_repo_rulesets "$(jq -n --argjson r "$(exact_ruleset 111)" '[$r]')" \
   "$(jq -n --argjson r "$(exact_ruleset 111)" '[$r]')"
 exact_ruleset 111 >"$S/mock/ruleset-111.json"
-printf '403\n' >"$S/mock/protection.status"
 cp "$S/repo/.github/CODEOWNERS" "$S/co.before"
 expect_ok 's1: apply (user-owned default, ruleset matches, no admin)' run
 assert_eq 's1: managed owner substituted with repository owner user' \
@@ -372,7 +367,6 @@ assert_out 's1: check reports satisfaction' 'all repository-specific requirement
 scenario s2 acme Organization
 write_co '@anthracite-labs'
 set_repo_rulesets '[]' '[]'
-printf '403\n' >"$S/mock/protection.status"
 cp "$S/repo/.github/CODEOWNERS" "$S/co.before"
 expect_fail 's2: org-owned apply without --owner refuses' run
 assert_out 's2: explains the explicit-owner requirement' 'Provide a deliberate explicit owner: --owner USER'
